@@ -157,6 +157,19 @@ export class GuestyClient {
     );
   }
 
+  async getCalendars(listingIds, startDate, endDate) {
+    if (!listingIds.length) return [];
+
+    const query = new URLSearchParams({
+      listingIds: listingIds.join(","),
+      startDate,
+      endDate,
+      ignoreInactiveChildAllotment: "true",
+      useChildValues: "true"
+    });
+    return this.request(`/availability-pricing/api/calendar/listings?${query}`);
+  }
+
   async setMinNights(listingId, date, minNights) {
     return this.request(`/availability-pricing/api/calendar/listings/${listingId}`, {
       method: "PUT",

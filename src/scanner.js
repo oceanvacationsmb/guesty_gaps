@@ -15,6 +15,17 @@ function calendarDays(payload) {
   return candidates.find(Array.isArray) || [];
 }
 
+function calendarDaysByListing(payload) {
+  const grouped = new Map();
+  for (const day of calendarDays(payload)) {
+    const listingId = String(day.listingId || "");
+    if (!listingId) continue;
+    if (!grouped.has(listingId)) grouped.set(listingId, []);
+    grouped.get(listingId).push(day);
+  }
+  return grouped;
+}
+
 export async function scanActiveListings({ client, config, activeListingIds }) {
   const startDate = formatDateInTimeZone(new Date(), config.timeZone);
   const endDate = addDays(startDate, config.scanDays);
@@ -26,8 +37,12 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
     `${config.dryRun ? "DRY RUN: " : ""}Scanning ${listings.length} enabled listings from ${startDate} to ${endDate}`
   );
 
+  const calendars = calendarDaysByListing(
+    await client.getCalendars(activeListingIds, startDate, endDate)
+  );
+
   for (const listing of listings) {
-    const days = calendarDays(await client.getCalendar(listing.id, startDate, endDate));
+    const days = calendars.get(listing.id) || [];
     const adjustments = findMinNightAdjustments(days);
 
     for (const adjustment of adjustments) {

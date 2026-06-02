@@ -29,3 +29,25 @@ test("retries a Guesty request after a 429 response", async () => {
   assert.deepEqual(await client.request("/test"), { ok: true });
   assert.equal(waits.includes(2000), true);
 });
+
+test("fetches multiple listing calendars in one Guesty request", async () => {
+  let requestedUrl = "";
+  const client = new GuestyClient({
+    clientId: "id",
+    clientSecret: "secret",
+    guestyRequestDelayMs: 1,
+    fetchImpl: async (url) => {
+      requestedUrl = url;
+      return response(200, { data: { days: [] } });
+    },
+    sleepImpl: async () => {}
+  });
+  client.accessToken = "cached-token";
+
+  await client.getCalendars(["listing-a", "listing-b"], "2026-06-02", "2026-11-29");
+
+  const url = new URL(requestedUrl);
+  assert.equal(url.pathname, "/v1/availability-pricing/api/calendar/listings");
+  assert.equal(url.searchParams.get("listingIds"), "listing-a,listing-b");
+  assert.equal(url.searchParams.get("useChildValues"), "true");
+});

@@ -17,7 +17,11 @@ test("live scan applies every eligible adjustment", async () => {
   const calls = [];
   const result = await scanActiveListings({
     client: {
-      getCalendar: async () => calendar,
+      getCalendars: async () =>
+        calendar.map((calendarDay) => ({
+          ...calendarDay,
+          listingId: "test-listing"
+        })),
       setMinNights: async (...args) => calls.push(args)
     },
     config: { dryRun: false, scanDays: 180 },
@@ -36,7 +40,11 @@ test("dry-run reports every adjustment without writing", async () => {
   const calls = [];
   const result = await scanActiveListings({
     client: {
-      getCalendar: async () => calendar,
+      getCalendars: async () =>
+        calendar.map((calendarDay) => ({
+          ...calendarDay,
+          listingId: "test-listing"
+        })),
       setMinNights: async (...args) => calls.push(args)
     },
     config: { dryRun: true, scanDays: 180 },

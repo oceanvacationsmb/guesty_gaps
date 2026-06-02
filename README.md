@@ -42,6 +42,7 @@ calendar date for the enabled properties.
 
 Guesty limits Open API traffic. The scanner spaces calls by `800ms` and
 automatically waits and retries if Guesty returns `429 Too Many Requests`.
+Calendar reads for enabled properties are batched into one Guesty request.
 
 ## Saving selected listings
 
