@@ -51,3 +51,39 @@ test("fetches multiple listing calendars in one Guesty request", async () => {
   assert.equal(url.searchParams.get("listingIds"), "listing-a,listing-b");
   assert.equal(url.searchParams.get("useChildValues"), "true");
 });
+
+test("updates multiple minimum-night dates for one listing in one request", async () => {
+  let requestOptions;
+  const client = new GuestyClient({
+    clientId: "id",
+    clientSecret: "secret",
+    guestyRequestDelayMs: 1,
+    fetchImpl: async (_url, options) => {
+      requestOptions = options;
+      return response(200, { ok: true });
+    },
+    sleepImpl: async () => {}
+  });
+  client.accessToken = "cached-token";
+
+  await client.setMinNightsBulk("listing-a", [
+    { date: "2026-06-09", toMinNights: 2 },
+    { date: "2026-06-10", toMinNights: 1 }
+  ]);
+
+  assert.equal(requestOptions.method, "PUT");
+  assert.deepEqual(JSON.parse(requestOptions.body), [
+    {
+      listingId: "listing-a",
+      startDate: "2026-06-09",
+      endDate: "2026-06-09",
+      minNights: 2
+    },
+    {
+      listingId: "listing-a",
+      startDate: "2026-06-10",
+      endDate: "2026-06-10",
+      minNights: 1
+    }
+  ]);
+});

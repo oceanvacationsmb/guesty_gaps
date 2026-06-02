@@ -49,14 +49,10 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
       console.log(
         `${config.dryRun ? "Would set" : "Setting"} ${listing.id} ${adjustment.date}: min nights ${adjustment.fromMinNights} -> ${adjustment.toMinNights}`
       );
-      if (!config.dryRun) {
-        await client.setMinNights(
-          listing.id,
-          adjustment.date,
-          adjustment.toMinNights
-        );
-        appliedCount += 1;
-      }
+    }
+    if (!config.dryRun && adjustments.length) {
+      await client.setMinNightsBulk(listing.id, adjustments);
+      appliedCount += adjustments.length;
     }
     result.listings.push({ ...listing, adjustments });
   }

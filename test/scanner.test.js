@@ -22,15 +22,20 @@ test("live scan applies every eligible adjustment", async () => {
           ...calendarDay,
           listingId: "test-listing"
         })),
-      setMinNights: async (...args) => calls.push(args)
+      setMinNightsBulk: async (...args) => calls.push(args)
     },
     config: { dryRun: false, scanDays: 180 },
     activeListingIds: ["test-listing"]
   });
 
   assert.deepEqual(calls, [
-    ["test-listing", "2026-06-09", 2],
-    ["test-listing", "2026-06-10", 1]
+    [
+      "test-listing",
+      [
+        { date: "2026-06-09", fromMinNights: 3, toMinNights: 2 },
+        { date: "2026-06-10", fromMinNights: 3, toMinNights: 1 }
+      ]
+    ]
   ]);
   assert.equal(result.adjustmentCount, 2);
   assert.equal(result.appliedCount, 2);
@@ -45,7 +50,7 @@ test("dry-run reports every adjustment without writing", async () => {
           ...calendarDay,
           listingId: "test-listing"
         })),
-      setMinNights: async (...args) => calls.push(args)
+      setMinNightsBulk: async (...args) => calls.push(args)
     },
     config: { dryRun: true, scanDays: 180 },
     activeListingIds: ["test-listing"]

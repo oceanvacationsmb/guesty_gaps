@@ -176,4 +176,20 @@ export class GuestyClient {
       body: JSON.stringify({ startDate: date, endDate: date, minNights })
     });
   }
+
+  async setMinNightsBulk(listingId, adjustments) {
+    if (!adjustments.length) return null;
+
+    return this.request("/availability-pricing/api/calendar/listings", {
+      method: "PUT",
+      body: JSON.stringify(
+        adjustments.map(({ date, toMinNights }) => ({
+          listingId,
+          startDate: date,
+          endDate: date,
+          minNights: toMinNights
+        }))
+      )
+    });
+  }
 }
