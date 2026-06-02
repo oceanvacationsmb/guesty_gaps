@@ -1,14 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { SettingsStore } from "../src/settingsStore.js";
 
 test("loads the committed property selection JSON locally", async () => {
-  const store = new SettingsStore({
-    path: join("config", "properties.json")
-  });
+  const path = join("config", "properties.json");
+  const store = new SettingsStore({ path });
+  const committed = JSON.parse(await readFile(path, "utf8"));
 
-  assert.deepEqual(await store.load(), { activeListingIds: [] });
+  assert.deepEqual(await store.load(), committed);
 });
 
 test("saves property selection to GitHub contents API", async () => {

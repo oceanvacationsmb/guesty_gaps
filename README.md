@@ -30,6 +30,7 @@ GITHUB_CONFIG_TOKEN=<fine-grained GitHub token>
 DRY_RUN=true
 SCAN_DAYS=180
 APP_TIME_ZONE=America/New_York
+GUESTY_REQUEST_DELAY_MS=800
 ```
 
 Keep `DRY_RUN=true` while testing. Open the Render service URL, enter the
@@ -38,6 +39,9 @@ scan. The result and Render logs will show each proposed minimum-night change.
 
 When `DRY_RUN=false`, clicking **SCAN & ADJUST NIGHTS** updates every eligible
 calendar date for the enabled properties.
+
+Guesty limits Open API traffic. The scanner spaces calls by `800ms` and
+automatically waits and retries if Guesty returns `429 Too Many Requests`.
 
 ## Saving selected listings
 

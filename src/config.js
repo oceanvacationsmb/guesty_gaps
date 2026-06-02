@@ -20,6 +20,7 @@ export function loadConfig() {
     dryRun: String(process.env.DRY_RUN || "true").toLowerCase() !== "false",
     scanDays: numberFromEnv("SCAN_DAYS", 180),
     timeZone: String(process.env.APP_TIME_ZONE || "America/New_York").trim(),
+    guestyRequestDelayMs: numberFromEnv("GUESTY_REQUEST_DELAY_MS", 800),
     adminKey: String(process.env.SETTINGS_ADMIN_KEY || "").trim(),
     settingsPath: String(
       process.env.SETTINGS_PATH || "config/properties.json"
