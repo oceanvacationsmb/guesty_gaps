@@ -1,51 +1,72 @@
 # guesty_gaps
 
-`guesty_gaps` scans Guesty calendars whenever it starts and opens eligible short
-gaps between reservations.
+`guesty_gaps` is a small Render Web Service that adjusts Guesty minimum-night
+rules inside open calendar gaps between reservations.
 
-The initial policy is intentionally narrow: a gap must be bounded by reservations,
-must be no longer than `MAX_GAP_NIGHTS`, and every day must be a manual block
-(`m`). Reservation, owner, preparation-time, imported-calendar, advance-notice,
-booking-window, smart-rule, allotment, and annual-limit blocks are never opened.
+It does not change availability status. If the next stay begins on January 31,
+the app can reduce the minimum stay on January 30 to one night, January 29 to two
+nights, and January 28 to three nights. Earlier dates keep their existing rules
+when they already fit inside the remaining gap.
 
-## Set up
+Every listing starts inactive. Use the settings page to enable only the
+properties that the scanner may update.
 
-1. Create a Guesty OAuth application in Guesty under **Integrations > OAuth applications**.
-2. Copy `.env.example` to `.env` and fill in the Guesty client ID and secret.
-3. Run `npm start`.
-4. Review the dry-run output.
-5. Set `DRY_RUN=false` only when the proposed openings match your policy.
+## Render setup
 
-Guesty limits token creation, so this app caches its OAuth token in
-`.guesty-token-cache.json`. Both the token cache and `.env` are ignored by Git.
+Create a Render Web Service connected to this repository:
 
-## Configure
+```text
+Build Command: npm install
+Start Command: npm start
+```
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `DRY_RUN` | `true` | Report changes without updating Guesty. |
-| `SCAN_DAYS` | `180` | Number of future calendar days to inspect. |
-| `MAX_GAP_NIGHTS` | `14` | Longest manual-block gap to reopen. |
-| `LISTING_IDS` | blank | Comma-separated Guesty listing IDs; blank scans all active listed properties. |
-| `OPENABLE_BLOCK_TYPES` | `m` | Guesty block types eligible for reopening. Expand only after reviewing Guesty's calendar block documentation. |
+Add these environment variables:
 
-## Run tests
+```text
+GUESTY_CLIENT_ID=<Guesty OAuth client ID>
+GUESTY_CLIENT_SECRET=<Guesty OAuth client secret>
+SETTINGS_ADMIN_KEY=<private password for the settings page>
+DRY_RUN=true
+SCAN_DAYS=180
+```
+
+Keep `DRY_RUN=true` while testing. Open the Render service URL, enter the
+`SETTINGS_ADMIN_KEY`, load listings, enable one test property, save, and run a
+scan. The result and Render logs will show each proposed minimum-night change.
+
+## Saving selected listings
+
+The settings page saves enabled listings to `.guesty-gaps-settings.json`. A
+normal Render filesystem is ephemeral, so the selection may reset after a
+redeploy.
+
+For durable settings, attach a Render persistent disk mounted at `/var/data` and
+add:
+
+```text
+SETTINGS_PATH=/var/data/guesty-gaps-settings.json
+```
+
+As a simple fallback, you may also store a comma-separated list in Render:
+
+```text
+ACTIVE_LISTING_IDS=listing_id_1,listing_id_2
+```
+
+The saved settings file takes precedence when it exists.
+
+## Local development
+
+Copy `.env.example` to `.env`, fill in the values, then run:
+
+```powershell
+npm start
+```
+
+Run the unit tests with:
 
 ```powershell
 npm test
-```
-
-## Create the GitHub repository
-
-This folder is ready to publish as a standalone repository named `guesty_gaps`:
-
-```powershell
-git init
-git add .
-git commit -m "Build Guesty calendar gap opener"
-git branch -M main
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/guesty_gaps.git
-git push -u origin main
 ```
 
 ## Guesty documentation

@@ -1,54 +1,45 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { findOpenableGaps } from "../src/gapFinder.js";
+import { findMinNightAdjustments } from "../src/gapFinder.js";
 
-const options = { maxGapNights: 3, openableBlockTypes: new Set(["m"]) };
-
-function day(date, status, blocks = {}) {
-  return { date, status, blocks };
+function day(date, status, minNights, blocks = {}) {
+  return { date, status, minNights, blocks };
 }
 
-test("opens a short manual gap bounded by bookings", () => {
-  const gaps = findOpenableGaps(
-    [
-      day("2026-06-01", "booked", { b: true }),
-      day("2026-06-02", "unavailable", { m: true }),
-      day("2026-06-03", "unavailable", { m: true }),
-      day("2026-06-04", "reserved", { r: true })
-    ],
-    options
-  );
+test("reduces minimum nights in reverse before the next reservation", () => {
+  const adjustments = findMinNightAdjustments([
+    day("2026-01-26", "booked", 3, { b: true }),
+    day("2026-01-27", "available", 4),
+    day("2026-01-28", "available", 3),
+    day("2026-01-29", "available", 3),
+    day("2026-01-30", "available", 3),
+    day("2026-01-31", "booked", 3, { b: true })
+  ]);
 
-  assert.deepEqual(gaps, [
-    { startDate: "2026-06-02", endDate: "2026-06-03", nights: 2 }
+  assert.deepEqual(adjustments, [
+    { date: "2026-01-29", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-01-30", fromMinNights: 3, toMinNights: 1 }
   ]);
 });
 
-test("does not open gaps containing protected blocks", () => {
-  const gaps = findOpenableGaps(
-    [
-      day("2026-06-01", "booked", { b: true }),
-      day("2026-06-02", "unavailable", { m: true, pt: true }),
-      day("2026-06-03", "booked", { b: true })
-    ],
-    options
-  );
+test("does not adjust open dates that are not between reservations", () => {
+  const adjustments = findMinNightAdjustments([
+    day("2026-01-28", "available", 3),
+    day("2026-01-29", "available", 3),
+    day("2026-01-30", "available", 3),
+    day("2026-01-31", "booked", 3, { b: true })
+  ]);
 
-  assert.deepEqual(gaps, []);
+  assert.deepEqual(adjustments, []);
 });
 
-test("does not open unbounded or oversized manual blocks", () => {
-  const gaps = findOpenableGaps(
-    [
-      day("2026-06-01", "booked", { b: true }),
-      day("2026-06-02", "unavailable", { m: true }),
-      day("2026-06-03", "unavailable", { m: true }),
-      day("2026-06-04", "unavailable", { m: true }),
-      day("2026-06-05", "unavailable", { m: true }),
-      day("2026-06-06", "booked", { b: true })
-    ],
-    options
-  );
+test("never changes unavailable calendar days", () => {
+  const adjustments = findMinNightAdjustments([
+    day("2026-01-28", "booked", 3, { b: true }),
+    day("2026-01-29", "unavailable", 3, { m: true }),
+    day("2026-01-30", "available", 3),
+    day("2026-01-31", "booked", 3, { b: true })
+  ]);
 
-  assert.deepEqual(gaps, []);
+  assert.deepEqual(adjustments, []);
 });

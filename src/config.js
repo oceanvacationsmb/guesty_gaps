@@ -26,8 +26,11 @@ export function loadConfig() {
     clientSecret,
     dryRun: String(process.env.DRY_RUN || "true").toLowerCase() !== "false",
     scanDays: numberFromEnv("SCAN_DAYS", 180),
-    maxGapNights: numberFromEnv("MAX_GAP_NIGHTS", 14),
-    listingIds: csv(process.env.LISTING_IDS),
-    openableBlockTypes: new Set(csv(process.env.OPENABLE_BLOCK_TYPES || "m"))
+    adminKey: String(process.env.SETTINGS_ADMIN_KEY || "").trim(),
+    activeListingIds: csv(process.env.ACTIVE_LISTING_IDS),
+    settingsPath: String(
+      process.env.SETTINGS_PATH || ".guesty-gaps-settings.json"
+    ).trim(),
+    port: Number(process.env.PORT || 3000)
   };
 }

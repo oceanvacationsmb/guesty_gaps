@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Open eligible Guesty calendar gaps when the app runs.",
+  "description": "Adjust Guesty minimum nights inside reservation gaps.",
   "scripts": {
-    "start": "node --env-file-if-exists=.env src/index.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
     "test": "node --test"
   },
   "engines": {

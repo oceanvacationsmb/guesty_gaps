@@ -1,17 +1,4 @@
-import { addDays, diffDays } from "./dates.js";
-
-const NEVER_OPEN_BLOCKS = new Set([
-  "r", // Reserved
-  "b", // Booked
-  "o", // Owner reservation
-  "pt", // Preparation time
-  "ic", // Imported calendar event
-  "an", // Advance notice
-  "bw", // Booking window
-  "sr", // Smart calendar rule
-  "a", // Allotment block
-  "abl" // Annual booking limit
-]);
+import { addDays } from "./dates.js";
 
 function enabledBlocks(day) {
   return Object.entries(day.blocks || {})
@@ -19,39 +6,33 @@ function enabledBlocks(day) {
     .map(([type]) => type);
 }
 
-function isHardBoundary(day) {
-  const blocks = enabledBlocks(day);
+function isReservationBoundary(day) {
+  const status = String(day?.status || "").toLowerCase();
+  const blocks = enabledBlocks(day || {});
   return (
-    ["booked", "reserved"].includes(String(day.status || "").toLowerCase()) ||
+    ["booked", "reserved"].includes(status) ||
     blocks.some((block) => ["b", "r", "o"].includes(block))
   );
 }
 
-function isOpenable(day, openableBlockTypes) {
-  if (String(day.status || "").toLowerCase() !== "unavailable") return false;
-
-  const blocks = enabledBlocks(day);
-  return (
-    blocks.length > 0 &&
-    !blocks.some((block) => NEVER_OPEN_BLOCKS.has(block)) &&
-    blocks.every((block) => openableBlockTypes.has(block))
-  );
+function isAvailable(day) {
+  return String(day?.status || "").toLowerCase() === "available";
 }
 
-export function findOpenableGaps(days, options) {
+export function findMinNightAdjustments(days) {
   const sortedDays = [...days]
     .filter((day) => day?.date)
     .sort((a, b) => a.date.localeCompare(b.date));
-  const gaps = [];
+  const adjustments = [];
 
   for (let index = 0; index < sortedDays.length; index += 1) {
-    if (!isOpenable(sortedDays[index], options.openableBlockTypes)) continue;
+    if (!isAvailable(sortedDays[index])) continue;
 
     const startIndex = index;
     while (
       index + 1 < sortedDays.length &&
       addDays(sortedDays[index].date, 1) === sortedDays[index + 1].date &&
-      isOpenable(sortedDays[index + 1], options.openableBlockTypes)
+      isAvailable(sortedDays[index + 1])
     ) {
       index += 1;
     }
@@ -59,20 +40,27 @@ export function findOpenableGaps(days, options) {
     const endIndex = index;
     const previousDay = sortedDays[startIndex - 1];
     const nextDay = sortedDays[endIndex + 1];
-    const startDate = sortedDays[startIndex].date;
-    const endDate = sortedDays[endIndex].date;
-    const nights = diffDays(startDate, addDays(endDate, 1));
+    if (!isReservationBoundary(previousDay) || !isReservationBoundary(nextDay)) {
+      continue;
+    }
 
-    if (
-      nights <= options.maxGapNights &&
-      previousDay &&
-      nextDay &&
-      isHardBoundary(previousDay) &&
-      isHardBoundary(nextDay)
-    ) {
-      gaps.push({ startDate, endDate, nights });
+    for (let dayIndex = startIndex; dayIndex <= endIndex; dayIndex += 1) {
+      const day = sortedDays[dayIndex];
+      const currentMinNights = Number(day.minNights);
+      const nightsUntilNextStay = endIndex - dayIndex + 1;
+
+      if (
+        Number.isInteger(currentMinNights) &&
+        currentMinNights > nightsUntilNextStay
+      ) {
+        adjustments.push({
+          date: day.date,
+          fromMinNights: currentMinNights,
+          toMinNights: nightsUntilNextStay
+        });
+      }
     }
   }
 
-  return gaps;
+  return adjustments;
 }

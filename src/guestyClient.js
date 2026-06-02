@@ -109,10 +109,10 @@ export class GuestyClient {
     );
   }
 
-  async openCalendarRange(listingId, startDate, endDate) {
+  async setMinNights(listingId, date, minNights) {
     return this.request(`/availability-pricing/api/calendar/listings/${listingId}`, {
       method: "PUT",
-      body: JSON.stringify({ startDate, endDate, status: "available" })
+      body: JSON.stringify({ startDate: date, endDate: date, minNights })
     });
   }
 }
