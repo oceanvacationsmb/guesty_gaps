@@ -76,6 +76,7 @@ export const propertiesPage = `<!doctype html>
           show("PROPERTY SETTINGS SAVED SUCCESSFULLY. " + data.activeListingIds.length + " properties enabled.", "success");
         } catch (error) { show(error.message, "error"); }
       }
+      if (keyInput.value) loadListings();
     </script>
   </body>
 </html>`;
