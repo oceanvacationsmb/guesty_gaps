@@ -3,7 +3,7 @@ import { loadConfig } from "./config.js";
 import { GuestyClient } from "./guestyClient.js";
 import { scanActiveListings } from "./scanner.js";
 import { SettingsStore } from "./settingsStore.js";
-import { settingsPage } from "./settingsPage.js";
+import { propertiesPage, scanPage } from "./settingsPage.js";
 
 const config = loadConfig();
 const client = new GuestyClient(config);
@@ -31,9 +31,17 @@ async function runScan() {
 
 const server = createServer(async (request, response) => {
   try {
-    if (request.method === "GET" && request.url === "/") {
+    if (
+      request.method === "GET" &&
+      ["/", "/properties"].includes(request.url)
+    ) {
       response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      response.end(settingsPage);
+      response.end(propertiesPage);
+      return;
+    }
+    if (request.method === "GET" && request.url === "/scan") {
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end(scanPage);
       return;
     }
     if (request.method === "GET" && request.url === "/health") {
@@ -60,6 +68,18 @@ const server = createServer(async (request, response) => {
         listings,
         activeCount: listings.filter((listing) => listing.active).length
       });
+      return;
+    }
+    if (request.method === "GET" && request.url === "/api/enabled-listings") {
+      const settings = await store.load();
+      const activeIds = new Set(settings.activeListingIds);
+      const listings = (await client.getListings())
+        .map((listing) => ({
+          id: listing._id || listing.id,
+          title: listing.title
+        }))
+        .filter((listing) => activeIds.has(listing.id));
+      sendJson(response, 200, { listings });
       return;
     }
     if (request.method === "PUT" && request.url === "/api/settings") {
