@@ -48,6 +48,20 @@ test("does not adjust a later gap without a prior reservation", () => {
   assert.deepEqual(adjustments, []);
 });
 
+test("adjusts tomorrow when today is blocked and the next stay bounds the first opening", () => {
+  const adjustments = findMinNightAdjustments([
+    day("2026-06-02", "unavailable", 3, { an: true }),
+    day("2026-06-03", "available", 3),
+    day("2026-06-04", "available", 3),
+    day("2026-06-05", "booked", 3, { b: true })
+  ]);
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-06-03", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-06-04", fromMinNights: 3, toMinNights: 1 }
+  ]);
+});
+
 test("never changes unavailable calendar days", () => {
   const adjustments = findMinNightAdjustments([
     day("2026-01-28", "booked", 3, { b: true }),

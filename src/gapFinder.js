@@ -40,9 +40,16 @@ export function findMinNightAdjustments(days) {
     const endIndex = index;
     const previousDay = sortedDays[startIndex - 1];
     const nextDay = sortedDays[endIndex + 1];
-    const startsOnDayZero = startIndex === 0;
+    const leadingDays = sortedDays.slice(0, startIndex);
+    const followsOnlyAdvanceNotice =
+      leadingDays.length > 0 &&
+      leadingDays.every((day) => {
+        const blocks = enabledBlocks(day);
+        return blocks.length > 0 && blocks.every((block) => block === "an");
+      });
+    const isInitialBookableSpan = startIndex === 0 || followsOnlyAdvanceNotice;
     if (
-      (!startsOnDayZero && !isReservationBoundary(previousDay)) ||
+      (!isInitialBookableSpan && !isReservationBoundary(previousDay)) ||
       !isReservationBoundary(nextDay)
     ) {
       continue;
