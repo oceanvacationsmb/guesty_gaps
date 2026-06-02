@@ -28,11 +28,17 @@ GUESTY_CLIENT_SECRET=<Guesty OAuth client secret>
 SETTINGS_ADMIN_KEY=<private password for the settings page>
 DRY_RUN=true
 SCAN_DAYS=180
+MAX_LIVE_UPDATES=1
 ```
 
 Keep `DRY_RUN=true` while testing. Open the Render service URL, enter the
 `SETTINGS_ADMIN_KEY`, load listings, enable one test property, save, and run a
 scan. The result and Render logs will show each proposed minimum-night change.
+
+For the first live test, keep `MAX_LIVE_UPDATES=1`. When `DRY_RUN=false`, the
+scanner will update only the first eligible calendar date and report the
+remaining proposals as skipped. Increase this limit only after reviewing the
+result in Guesty.
 
 ## Saving selected listings
 
