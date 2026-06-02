@@ -29,15 +29,25 @@ export class GuestyClient {
 
     const response = await fetch(TOKEN_URL, {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        clientId: this.clientId,
-        clientSecret: this.clientSecret
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        scope: "open-api",
+        client_id: this.clientId,
+        client_secret: this.clientSecret
       })
     });
-    const data = await response.json();
+    const text = await response.text();
+    let data = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Keep the raw response available in the error below.
+    }
     if (!response.ok || !data.access_token) {
-      throw new Error(`Guesty authentication failed (${response.status})`);
+      throw new Error(
+        `Guesty authentication failed (${response.status}): ${text || "empty response"}`
+      );
     }
 
     this.accessToken = data.access_token;
