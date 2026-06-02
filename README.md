@@ -28,6 +28,7 @@ GUESTY_CLIENT_SECRET=<Guesty OAuth client secret>
 SETTINGS_ADMIN_KEY=<private password for the settings page>
 DRY_RUN=true
 SCAN_DAYS=180
+APP_TIME_ZONE=America/New_York
 MAX_LIVE_UPDATES=1
 ```
 

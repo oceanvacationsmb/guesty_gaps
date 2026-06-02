@@ -1,4 +1,4 @@
-import { addDays, formatDate } from "./dates.js";
+import { addDays, formatDateInTimeZone } from "./dates.js";
 import { findMinNightAdjustments } from "./gapFinder.js";
 
 function calendarDays(payload) {
@@ -16,7 +16,7 @@ function calendarDays(payload) {
 }
 
 export async function scanActiveListings({ client, config, activeListingIds }) {
-  const startDate = formatDate(new Date());
+  const startDate = formatDateInTimeZone(new Date(), config.timeZone);
   const endDate = addDays(startDate, config.scanDays);
   const listings = activeListingIds.map((id) => ({ id, title: id }));
   const result = { dryRun: config.dryRun, startDate, endDate, listings: [] };
