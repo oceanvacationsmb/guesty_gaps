@@ -46,3 +46,16 @@ test("saves property selection to GitHub contents API", async () => {
     '{\n  "activeListingIds": [\n    "listing-a",\n    "listing-b"\n  ]\n}\n'
   );
 });
+
+test("falls back to committed JSON when GitHub settings read is unauthorized", async () => {
+  const store = new SettingsStore({
+    path: join("config", "properties.json"),
+    githubToken: "invalid-token",
+    githubOwner: "owner",
+    githubRepo: "repo",
+    fetchImpl: async () => ({ ok: false, status: 401 })
+  });
+  const settings = await store.load();
+
+  assert.ok(Array.isArray(settings.activeListingIds));
+});

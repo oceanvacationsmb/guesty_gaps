@@ -55,9 +55,15 @@ export class SettingsStore {
     if (this.cachedSettings) return this.cachedSettings;
 
     if (this.githubToken) {
-      const file = await this.readGithubFile();
-      this.cachedSettings = normalize(decodeContent(file.content).activeListingIds || []);
-      return this.cachedSettings;
+      try {
+        const file = await this.readGithubFile();
+        this.cachedSettings = normalize(
+          decodeContent(file.content).activeListingIds || []
+        );
+        return this.cachedSettings;
+      } catch (error) {
+        console.warn(`${error.message}. Loading committed local settings instead.`);
+      }
     }
 
     const saved = JSON.parse(await readFile(this.path, "utf8"));
