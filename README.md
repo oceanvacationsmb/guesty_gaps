@@ -26,6 +26,7 @@ Add these environment variables:
 GUESTY_CLIENT_ID=<Guesty OAuth client ID>
 GUESTY_CLIENT_SECRET=<Guesty OAuth client secret>
 SETTINGS_ADMIN_KEY=<private password for the settings page>
+GITHUB_CONFIG_TOKEN=<fine-grained GitHub token>
 DRY_RUN=true
 SCAN_DAYS=180
 APP_TIME_ZONE=America/New_York
@@ -43,24 +44,20 @@ result in Guesty.
 
 ## Saving selected listings
 
-The settings page saves enabled listings to `.guesty-gaps-settings.json`. A
-normal Render filesystem is ephemeral, so the selection may reset after a
-redeploy.
+The settings page saves enabled listings to `config/properties.json` in this
+GitHub repository. Render reads that committed JSON file, so the selection
+survives refreshes, restarts, and redeploys.
 
-For durable settings, attach a Render persistent disk mounted at `/var/data` and
-add:
-
-```text
-SETTINGS_PATH=/var/data/guesty-gaps-settings.json
-```
-
-As a simple fallback, you may also store a comma-separated list in Render:
+Create a fine-grained GitHub personal access token restricted to the
+`oceanvacationsmb/guesty_gaps` repository with **Contents: Read and write**
+permission. Add it to Render:
 
 ```text
-ACTIVE_LISTING_IDS=listing_id_1,listing_id_2
+GITHUB_CONFIG_TOKEN=<fine-grained GitHub token>
 ```
 
-The saved settings file takes precedence when it exists.
+The token stays in Render. It is never committed to GitHub and is used only when
+the settings page saves the selected listing IDs.
 
 ## Local development
 

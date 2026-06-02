@@ -6,13 +6,6 @@ function numberFromEnv(name, fallback) {
   return value;
 }
 
-function csv(value) {
-  return String(value || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
 export function loadConfig() {
   const clientId = String(process.env.GUESTY_CLIENT_ID || "").trim();
   const clientSecret = String(process.env.GUESTY_CLIENT_SECRET || "").trim();
@@ -29,9 +22,18 @@ export function loadConfig() {
     timeZone: String(process.env.APP_TIME_ZONE || "America/New_York").trim(),
     maxLiveUpdates: numberFromEnv("MAX_LIVE_UPDATES", 1),
     adminKey: String(process.env.SETTINGS_ADMIN_KEY || "").trim(),
-    activeListingIds: csv(process.env.ACTIVE_LISTING_IDS),
     settingsPath: String(
-      process.env.SETTINGS_PATH || ".guesty-gaps-settings.json"
+      process.env.SETTINGS_PATH || "config/properties.json"
+    ).trim(),
+    githubConfigToken: String(process.env.GITHUB_CONFIG_TOKEN || "").trim(),
+    githubConfigOwner: String(
+      process.env.GITHUB_CONFIG_OWNER || "oceanvacationsmb"
+    ).trim(),
+    githubConfigRepo: String(
+      process.env.GITHUB_CONFIG_REPO || "guesty_gaps"
+    ).trim(),
+    githubConfigBranch: String(
+      process.env.GITHUB_CONFIG_BRANCH || "main"
     ).trim(),
     port: Number(process.env.PORT || 3000)
   };

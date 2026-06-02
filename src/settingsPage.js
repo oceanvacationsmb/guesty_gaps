@@ -43,7 +43,7 @@ export const propertiesPage = `<!doctype html>
   </head>
   <body>
     <h1>Property Settings</h1>
-    <p>Enable only the properties that may receive minimum-night adjustments.</p>
+    <p>Enable only the properties that may receive minimum-night adjustments. Saving commits your selection to GitHub.</p>
     <nav>
       <a class="active" href="/properties">Property Settings</a>
       <a href="/scan">Scan &amp; Adjust</a>

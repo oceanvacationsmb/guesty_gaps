@@ -7,7 +7,13 @@ import { propertiesPage, scanPage } from "./settingsPage.js";
 
 const config = loadConfig();
 const client = new GuestyClient(config);
-const store = new SettingsStore(config.settingsPath, config.activeListingIds);
+const store = new SettingsStore({
+  path: config.settingsPath,
+  githubToken: config.githubConfigToken,
+  githubOwner: config.githubConfigOwner,
+  githubRepo: config.githubConfigRepo,
+  githubBranch: config.githubConfigBranch
+});
 
 function sendJson(response, status, body) {
   response.writeHead(status, { "content-type": "application/json" });

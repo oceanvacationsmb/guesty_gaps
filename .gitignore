@@ -1,4 +1,3 @@
 .env
 .guesty-token-cache.json
-.guesty-gaps-settings.json
 node_modules/
