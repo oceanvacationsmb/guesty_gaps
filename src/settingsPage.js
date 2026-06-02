@@ -122,8 +122,7 @@ export const scanPage = `<!doctype html>
           const data = await api("/api/scan", { method: "POST", body: "{}" });
           const detail = data.dryRun
             ? data.adjustmentCount + " proposed adjustments. No Guesty changes were made because DRY_RUN is true."
-            : data.appliedCount + " adjustments applied successfully." +
-              (data.skippedByLiveCap ? " " + data.skippedByLiveCap + " skipped by the live safety cap." : "");
+            : data.appliedCount + " adjustments applied successfully.";
           show("UPDATE SUCCESSFULLY. " + detail, "success");
         } catch (error) { show(error.message, "error"); }
       }

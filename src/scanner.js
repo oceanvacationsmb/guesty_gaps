@@ -21,7 +21,6 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
   const listings = activeListingIds.map((id) => ({ id, title: id }));
   const result = { dryRun: config.dryRun, startDate, endDate, listings: [] };
   let appliedCount = 0;
-  let skippedByLiveCap = 0;
 
   console.log(
     `${config.dryRun ? "DRY RUN: " : ""}Scanning ${listings.length} enabled listings from ${startDate} to ${endDate}`
@@ -32,15 +31,6 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
     const adjustments = findMinNightAdjustments(days);
 
     for (const adjustment of adjustments) {
-      const liveCapReached =
-        !config.dryRun && appliedCount >= config.maxLiveUpdates;
-      if (liveCapReached) {
-        skippedByLiveCap += 1;
-        console.log(
-          `Skipping ${listing.id} ${adjustment.date}: live update cap of ${config.maxLiveUpdates} reached`
-        );
-        continue;
-      }
       console.log(
         `${config.dryRun ? "Would set" : "Setting"} ${listing.id} ${adjustment.date}: min nights ${adjustment.fromMinNights} -> ${adjustment.toMinNights}`
       );
@@ -64,8 +54,6 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
   return {
     ...result,
     adjustmentCount: count,
-    appliedCount,
-    skippedByLiveCap,
-    maxLiveUpdates: config.maxLiveUpdates
+    appliedCount
   };
 }

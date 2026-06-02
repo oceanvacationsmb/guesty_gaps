@@ -30,17 +30,14 @@ GITHUB_CONFIG_TOKEN=<fine-grained GitHub token>
 DRY_RUN=true
 SCAN_DAYS=180
 APP_TIME_ZONE=America/New_York
-MAX_LIVE_UPDATES=1
 ```
 
 Keep `DRY_RUN=true` while testing. Open the Render service URL, enter the
 `SETTINGS_ADMIN_KEY`, load listings, enable one test property, save, and run a
 scan. The result and Render logs will show each proposed minimum-night change.
 
-For the first live test, keep `MAX_LIVE_UPDATES=1`. When `DRY_RUN=false`, the
-scanner will update only the first eligible calendar date and report the
-remaining proposals as skipped. Increase this limit only after reviewing the
-result in Guesty.
+When `DRY_RUN=false`, clicking **SCAN & ADJUST NIGHTS** updates every eligible
+calendar date for the enabled properties.
 
 ## Saving selected listings
 
