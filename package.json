@@ -1,0 +1,14 @@
+{
+  "name": "guesty_gaps",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Open eligible Guesty calendar gaps when the app runs.",
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
