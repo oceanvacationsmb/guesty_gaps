@@ -40,7 +40,11 @@ export function findMinNightAdjustments(days) {
     const endIndex = index;
     const previousDay = sortedDays[startIndex - 1];
     const nextDay = sortedDays[endIndex + 1];
-    if (!isReservationBoundary(previousDay) || !isReservationBoundary(nextDay)) {
+    const startsOnDayZero = startIndex === 0;
+    if (
+      (!startsOnDayZero && !isReservationBoundary(previousDay)) ||
+      !isReservationBoundary(nextDay)
+    ) {
       continue;
     }
 
