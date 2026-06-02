@@ -129,10 +129,15 @@ export const scanPage = `<!doctype html>
           await waitForScan();
         } catch (error) { show(error.message, "error"); }
       }
+      function elapsed(startedAt) {
+        const seconds = Math.max(0, Math.floor((Date.now() - Date.parse(startedAt)) / 1000));
+        const minutes = Math.floor(seconds / 60);
+        return String(minutes).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
+      }
       async function waitForScan() {
         const job = await api("/api/scan-status");
         if (job.state === "running") {
-          show("Scanning enabled properties... This may take several minutes.");
+          show("Scanning enabled properties... " + elapsed(job.startedAt) + " elapsed. This may take several minutes.");
           setTimeout(waitForScan, 2000);
           return;
         }
