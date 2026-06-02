@@ -106,5 +106,4 @@ server.listen(config.port, () => {
   if (!config.adminKey) {
     console.warn("SETTINGS_ADMIN_KEY is missing. Settings API is disabled.");
   }
-  runScan().catch((error) => console.error(`Startup scan failed: ${error.message}`));
 });
