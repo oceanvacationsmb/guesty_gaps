@@ -4,6 +4,7 @@ import { GuestyClient } from "./guestyClient.js";
 import { scanActiveListings } from "./scanner.js";
 import { SettingsStore } from "./settingsStore.js";
 import { propertiesPage, scanPage } from "./settingsPage.js";
+import { ScanJob } from "./scanJob.js";
 
 const config = loadConfig();
 const client = new GuestyClient(config);
@@ -34,6 +35,8 @@ async function runScan() {
   const settings = await store.load();
   return scanActiveListings({ client, config, ...settings });
 }
+
+const scanJob = new ScanJob(runScan);
 
 const server = createServer(async (request, response) => {
   try {
@@ -97,7 +100,11 @@ const server = createServer(async (request, response) => {
       return;
     }
     if (request.method === "POST" && request.url === "/api/scan") {
-      sendJson(response, 200, await runScan());
+      sendJson(response, 202, scanJob.start());
+      return;
+    }
+    if (request.method === "GET" && request.url === "/api/scan-status") {
+      sendJson(response, 200, scanJob.getStatus());
       return;
     }
     sendJson(response, 404, { error: "Not found" });

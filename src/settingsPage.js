@@ -23,7 +23,13 @@ const scriptHelpers = `
   async function api(path, options = {}) {
     sessionStorage.setItem("guestyAdminKey", keyInput.value);
     const response = await fetch(path, { ...options, headers: headers() });
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error("Render returned an HTML page instead of API data. Wait for deployment to finish and try again.");
+    }
     if (!response.ok) throw new Error(data.error || "Request failed");
     return data;
   }
@@ -119,12 +125,24 @@ export const scanPage = `<!doctype html>
       async function scan() {
         try {
           show("Scanning enabled properties...");
-          const data = await api("/api/scan", { method: "POST", body: "{}" });
-          const detail = data.dryRun
-            ? data.adjustmentCount + " proposed adjustments. No Guesty changes were made because DRY_RUN is true."
-            : data.appliedCount + " adjustments applied successfully.";
-          show("UPDATE SUCCESSFULLY. " + detail, "success");
+          await api("/api/scan", { method: "POST", body: "{}" });
+          await waitForScan();
         } catch (error) { show(error.message, "error"); }
+      }
+      async function waitForScan() {
+        const job = await api("/api/scan-status");
+        if (job.state === "running") {
+          show("Scanning enabled properties... This may take several minutes.");
+          setTimeout(waitForScan, 2000);
+          return;
+        }
+        if (job.state === "failed") throw new Error(job.error || "Scan failed");
+        if (job.state !== "completed") throw new Error("Scan did not start");
+        const data = job.result;
+        const detail = data.dryRun
+          ? data.adjustmentCount + " proposed adjustments. No Guesty changes were made because DRY_RUN is true."
+          : data.appliedCount + " adjustments applied successfully.";
+        show("UPDATE SUCCESSFULLY. " + detail, "success");
       }
       loadEnabled();
     </script>
