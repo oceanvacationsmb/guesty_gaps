@@ -12,6 +12,11 @@ const styles = `
   .panel { padding: 16px; background: #f4f7fa; border-radius: 5px; }
   .success { color: #17643a; background: #e9f7ef; }
   .error { color: #9e251d; background: #fbeceb; }
+  .results { margin-top: 18px; border: 1px solid #d5dee8; border-radius: 6px; overflow: hidden; }
+  .result-row { padding: 12px 14px; border-bottom: 1px solid #d5dee8; }
+  .result-row:last-child { border-bottom: 0; }
+  .result-title { display: flex; justify-content: space-between; gap: 12px; font-weight: bold; }
+  .result-details { margin: 8px 0 0; color: #44546a; }
   #status { white-space: pre-wrap; }
 `;
 
@@ -33,10 +38,19 @@ const scriptHelpers = `
     if (!response.ok) throw new Error(data.error || "Request failed");
     return data;
   }
-  function show(message, type = "") {
-    status.className = "panel " + type;
-    status.textContent = message;
-  }
+      function show(message, type = "") {
+        status.className = "panel " + type;
+        status.textContent = message;
+      }
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        }[char]));
+      }
 `;
 
 export const propertiesPage = `<!doctype html>
@@ -148,6 +162,25 @@ export const scanPage = `<!doctype html>
           ? data.adjustmentCount + " proposed adjustments. No Guesty changes were made because DRY_RUN is true."
           : data.appliedCount + " adjustments applied successfully.";
         show("UPDATE SUCCESSFULLY. " + detail, "success");
+        renderScanResults(data);
+      }
+      function renderScanResults(data) {
+        const rows = (data.listings || []).map((listing) => {
+          const adjustments = listing.adjustments || [];
+          const countText = adjustments.length + " " + (adjustments.length === 1 ? "gap" : "gaps") + " adjusted";
+          const details = adjustments.length
+            ? '<ul class="result-details">' + adjustments.map((adjustment) =>
+                '<li>' + escapeHtml(adjustment.date) + ': ' +
+                escapeHtml(adjustment.fromMinNights) + ' nights -> ' +
+                escapeHtml(adjustment.toMinNights) + ' nights</li>'
+              ).join("") + '</ul>'
+            : '<div class="result-details">No eligible gaps found.</div>';
+          return '<div class="result-row"><div class="result-title"><span>' +
+            escapeHtml(listing.title || listing.id) + '</span><span>' +
+            countText + '</span></div>' + details + '</div>';
+        }).join("");
+        document.getElementById("listings").innerHTML =
+          '<h3>Scan results</h3><div class="results">' + rows + '</div>';
       }
       loadEnabled();
     </script>
