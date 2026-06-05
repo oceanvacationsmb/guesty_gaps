@@ -142,7 +142,7 @@ export class GuestyClient {
 
     for (let skip = 0; ; skip += limit) {
       const page = await this.request(
-        `/listings?active=true&listed=true&limit=${limit}&skip=${skip}&fields=_id%20id%20title`
+        `/listings?active=true&listed=true&limit=${limit}&skip=${skip}&fields=_id%20id%20title%20nickname%20nicknameForOwner%20name`
       );
       const results = page.results || [];
       listings.push(...results);

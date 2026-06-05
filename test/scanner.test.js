@@ -17,6 +17,9 @@ test("live scan applies every eligible adjustment", async () => {
   const calls = [];
   const result = await scanActiveListings({
     client: {
+      getListings: async () => [
+        { _id: "test-listing", title: "Ocean View Condo" }
+      ],
       getCalendars: async () =>
         calendar.map((calendarDay) => ({
           ...calendarDay,
@@ -37,6 +40,7 @@ test("live scan applies every eligible adjustment", async () => {
       ]
     ]
   ]);
+  assert.equal(result.listings[0].title, "Ocean View Condo");
   assert.equal(result.adjustmentCount, 2);
   assert.equal(result.appliedCount, 2);
 });
@@ -45,6 +49,9 @@ test("dry-run reports every adjustment without writing", async () => {
   const calls = [];
   const result = await scanActiveListings({
     client: {
+      getListings: async () => [
+        { _id: "test-listing", nickname: "Ocean View Condo" }
+      ],
       getCalendars: async () =>
         calendar.map((calendarDay) => ({
           ...calendarDay,

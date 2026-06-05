@@ -26,10 +26,33 @@ function calendarDaysByListing(payload) {
   return grouped;
 }
 
+function listingName(listing) {
+  return (
+    listing?.title ||
+    listing?.nickname ||
+    listing?.nicknameForOwner ||
+    listing?.name ||
+    listing?._id ||
+    listing?.id
+  );
+}
+
 export async function scanActiveListings({ client, config, activeListingIds }) {
   const startDate = formatDateInTimeZone(new Date(), config.timeZone);
   const endDate = addDays(startDate, config.scanDays);
-  const listings = activeListingIds.map((id) => ({ id, title: id }));
+  const listingMetadata = new Map(
+    (await client.getListings()).map((listing) => [
+      String(listing._id || listing.id),
+      listing
+    ])
+  );
+  const listings = activeListingIds.map((id) => {
+    const metadata = listingMetadata.get(String(id));
+    return {
+      id,
+      title: listingName(metadata) || id
+    };
+  });
   const result = { dryRun: config.dryRun, startDate, endDate, listings: [] };
   let appliedCount = 0;
 

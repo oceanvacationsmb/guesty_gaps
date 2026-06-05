@@ -70,7 +70,11 @@ const server = createServer(async (request, response) => {
       const activeIds = new Set(settings.activeListingIds);
       const listings = (await client.getListings()).map((listing) => ({
         id: listing._id || listing.id,
-        title: listing.title,
+        title:
+          listing.title ||
+          listing.nickname ||
+          listing.nicknameForOwner ||
+          listing.name,
         active: activeIds.has(listing._id || listing.id)
       }));
       sendJson(response, 200, {
@@ -85,7 +89,11 @@ const server = createServer(async (request, response) => {
       const listings = (await client.getListings())
         .map((listing) => ({
           id: listing._id || listing.id,
-          title: listing.title
+          title:
+            listing.title ||
+            listing.nickname ||
+            listing.nicknameForOwner ||
+            listing.name
         }))
         .filter((listing) => activeIds.has(listing.id));
       sendJson(response, 200, { listings });
