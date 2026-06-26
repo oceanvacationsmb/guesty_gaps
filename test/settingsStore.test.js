@@ -8,8 +8,12 @@ test("loads the committed property selection JSON locally", async () => {
   const path = join("config", "properties.json");
   const store = new SettingsStore({ path });
   const committed = JSON.parse(await readFile(path, "utf8"));
+  const expectedIds = [...new Set(committed.activeListingIds.map(String))].sort();
 
-  assert.deepEqual(await store.load(), committed);
+  assert.deepEqual(await store.load(), {
+    activeListingIds: expectedIds,
+    minNightsFloors: Object.fromEntries(expectedIds.map((id) => [id, 1]))
+  });
 });
 
 test("saves property selection to GitHub contents API", async () => {
@@ -21,7 +25,9 @@ test("saves property selection to GitHub contents API", async () => {
         ok: true,
         json: async () => ({
           sha: "current-sha",
-          content: Buffer.from('{"activeListingIds":[]}').toString("base64")
+          content: Buffer.from(
+            '{"activeListingIds":[],"minNightsFloors":{}}'
+          ).toString("base64")
         })
       };
     }
@@ -35,15 +41,21 @@ test("saves property selection to GitHub contents API", async () => {
     fetchImpl
   });
 
-  const saved = await store.save(["listing-b", "listing-a"]);
+  const saved = await store.save({
+    activeListingIds: ["listing-b", "listing-a"],
+    minNightsFloors: { "listing-a": 2, "listing-b": 1 }
+  });
   const update = JSON.parse(requests[1].options.body);
 
-  assert.deepEqual(saved.activeListingIds, ["listing-a", "listing-b"]);
+  assert.deepEqual(saved, {
+    activeListingIds: ["listing-a", "listing-b"],
+    minNightsFloors: { "listing-a": 2, "listing-b": 1 }
+  });
   assert.equal(requests[1].options.method, "PUT");
   assert.equal(update.sha, "current-sha");
   assert.equal(
     Buffer.from(update.content, "base64").toString("utf8"),
-    '{\n  "activeListingIds": [\n    "listing-a",\n    "listing-b"\n  ]\n}\n'
+    '{\n  "activeListingIds": [\n    "listing-a",\n    "listing-b"\n  ],\n  "minNightsFloors": {\n    "listing-a": 2,\n    "listing-b": 1\n  }\n}\n'
   );
 });
 

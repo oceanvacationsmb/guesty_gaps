@@ -37,7 +37,12 @@ function listingName(listing) {
   );
 }
 
-export async function scanActiveListings({ client, config, activeListingIds }) {
+export async function scanActiveListings({
+  client,
+  config,
+  activeListingIds,
+  minNightsFloors = {}
+}) {
   const startDate = formatDateInTimeZone(new Date(), config.timeZone);
   const endDate = addDays(startDate, config.scanDays);
   const listingMetadata = new Map(
@@ -50,7 +55,8 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
     const metadata = listingMetadata.get(String(id));
     return {
       id,
-      title: listingName(metadata) || id
+      title: listingName(metadata) || id,
+      minNightsFloor: minNightsFloors[id] || 1
     };
   });
   const result = { dryRun: config.dryRun, startDate, endDate, listings: [] };
@@ -66,7 +72,9 @@ export async function scanActiveListings({ client, config, activeListingIds }) {
 
   for (const listing of listings) {
     const days = calendars.get(listing.id) || [];
-    const adjustments = findMinNightAdjustments(days);
+    const adjustments = findMinNightAdjustments(days, {
+      minNightsFloor: listing.minNightsFloor
+    });
 
     for (const adjustment of adjustments) {
       console.log(

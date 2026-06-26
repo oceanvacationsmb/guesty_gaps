@@ -28,7 +28,8 @@ test("live scan applies every eligible adjustment", async () => {
       setMinNightsBulk: async (...args) => calls.push(args)
     },
     config: { dryRun: false, scanDays: 180 },
-    activeListingIds: ["test-listing"]
+    activeListingIds: ["test-listing"],
+    minNightsFloors: { "test-listing": 2 }
   });
 
   assert.deepEqual(calls, [
@@ -36,10 +37,11 @@ test("live scan applies every eligible adjustment", async () => {
       "test-listing",
       [
         { date: "2026-06-09", fromMinNights: 3, toMinNights: 2 },
-        { date: "2026-06-10", fromMinNights: 3, toMinNights: 1 }
+        { date: "2026-06-10", fromMinNights: 3, toMinNights: 2 }
       ]
     ]
   ]);
+  assert.equal(result.listings[0].minNightsFloor, 2);
   assert.equal(result.listings[0].title, "Ocean View Condo");
   assert.equal(result.adjustmentCount, 2);
   assert.equal(result.appliedCount, 2);
@@ -60,7 +62,8 @@ test("dry-run reports every adjustment without writing", async () => {
       setMinNightsBulk: async (...args) => calls.push(args)
     },
     config: { dryRun: true, scanDays: 180 },
-    activeListingIds: ["test-listing"]
+    activeListingIds: ["test-listing"],
+    minNightsFloors: { "test-listing": 1 }
   });
 
   assert.deepEqual(calls, []);

@@ -1,8 +1,21 @@
 import { readFile } from "node:fs/promises";
 
-function normalize(activeListingIds) {
+function normalize(input) {
+  const activeListingIds = Array.isArray(input)
+    ? input
+    : input?.activeListingIds || [];
+  const rawFloors = Array.isArray(input) ? {} : input?.minNightsFloors || {};
+  const normalizedIds = [...new Set(activeListingIds.map(String))].sort();
+  const minNightsFloors = {};
+
+  for (const id of normalizedIds) {
+    const value = Number(rawFloors[id] || 1);
+    minNightsFloors[id] = Number.isInteger(value) && value > 0 ? value : 1;
+  }
+
   return {
-    activeListingIds: [...new Set(activeListingIds.map(String))].sort()
+    activeListingIds: normalizedIds,
+    minNightsFloors
   };
 }
 
@@ -57,9 +70,7 @@ export class SettingsStore {
     if (this.githubToken) {
       try {
         const file = await this.readGithubFile();
-        this.cachedSettings = normalize(
-          decodeContent(file.content).activeListingIds || []
-        );
+        this.cachedSettings = normalize(decodeContent(file.content));
         return this.cachedSettings;
       } catch (error) {
         console.warn(`${error.message}. Loading committed local settings instead.`);
@@ -67,18 +78,18 @@ export class SettingsStore {
     }
 
     const saved = JSON.parse(await readFile(this.path, "utf8"));
-    this.cachedSettings = normalize(saved.activeListingIds || []);
+    this.cachedSettings = normalize(saved);
     return this.cachedSettings;
   }
 
-  async save(activeListingIds) {
+  async save(settingsInput) {
     if (!this.githubToken) {
       throw new Error(
         "Set GITHUB_CONFIG_TOKEN in Render before saving property settings"
       );
     }
 
-    const settings = normalize(activeListingIds);
+    const settings = normalize(settingsInput);
     const currentFile = await this.readGithubFile();
     const response = await this.fetch(this.githubUrl(), {
       method: "PUT",

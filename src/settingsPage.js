@@ -6,6 +6,7 @@ const styles = `
   nav a.active { color: white; background: #153d6f; }
   .row { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; align-items: center; }
   input[type=password] { min-width: 280px; padding: 10px; }
+  input[type=number] { width: 72px; padding: 8px; }
   button { padding: 11px 15px; cursor: pointer; font-weight: bold; }
   .primary { color: white; background: #153d6f; border: 1px solid #153d6f; border-radius: 5px; }
   .listing { display: flex; gap: 10px; padding: 11px 4px; border-bottom: 1px solid #ddd; }
@@ -63,7 +64,7 @@ export const propertiesPage = `<!doctype html>
   </head>
   <body>
     <h1>Property Settings</h1>
-    <p>Enable only the properties that may receive minimum-night adjustments. Saving commits your selection to GitHub.</p>
+    <p>Enable properties and choose the lowest minimum nights the scanner may set for each one. Saving commits your selection to GitHub.</p>
     <nav>
       <a class="active" href="/properties">Property Settings</a>
       <a href="/scan">Scan &amp; Adjust</a>
@@ -82,7 +83,8 @@ export const propertiesPage = `<!doctype html>
           const data = await api("/api/listings");
           document.getElementById("listings").innerHTML = data.listings.map((listing) =>
             '<label class="listing"><input type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
-            (listing.title || listing.id) + ' <small>(' + listing.id + ')</small></label>'
+            '<span style="flex:1">' + escapeHtml(listing.title || listing.id) + ' <small>(' + escapeHtml(listing.id) + ')</small></span>' +
+            '<span>Lowest min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span></label>'
           ).join("");
           show(data.listings.length + " properties loaded. " + data.activeCount + " enabled.");
         } catch (error) { show(error.message, "error"); }
@@ -90,9 +92,17 @@ export const propertiesPage = `<!doctype html>
       function selectedIds() {
         return [...document.querySelectorAll("input[type=checkbox]:checked")].map((input) => input.value);
       }
+      function minNightsFloors() {
+        const floors = {};
+        for (const id of selectedIds()) {
+          const input = document.querySelector('.floor[data-listing-id="' + CSS.escape(id) + '"]');
+          floors[id] = Math.max(1, Number(input?.value || 1));
+        }
+        return floors;
+      }
       async function save() {
         try {
-          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds() }) });
+          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors() }) });
           show("PROPERTY SETTINGS SAVED SUCCESSFULLY. " + data.activeListingIds.length + " properties enabled.", "success");
         } catch (error) { show(error.message, "error"); }
       }
@@ -130,7 +140,7 @@ export const scanPage = `<!doctype html>
           const data = await api("/api/enabled-listings");
           document.getElementById("listings").innerHTML = data.listings.length
             ? '<h3>Enabled properties</h3>' + data.listings.map((listing) =>
-                '<div class="listing">' + (listing.title || listing.id) + '</div>'
+                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' — lowest min nights ' + escapeHtml(listing.minNightsFloor || 1) + '</div>'
               ).join("")
             : '<p>No properties are enabled. Use Property Settings first.</p>';
           show(data.listings.length + " enabled properties loaded.");
@@ -176,7 +186,7 @@ export const scanPage = `<!doctype html>
               ).join("") + '</ul>'
             : '<div class="result-details">No eligible gaps found.</div>';
           return '<div class="result-row"><div class="result-title"><span>' +
-            escapeHtml(listing.title || listing.id) + '</span><span>' +
+            escapeHtml(listing.title || listing.id) + ' <small>(floor ' + escapeHtml(listing.minNightsFloor || 1) + ')</small></span><span>' +
             countText + '</span></div>' + details + '</div>';
         }).join("");
         document.getElementById("listings").innerHTML =

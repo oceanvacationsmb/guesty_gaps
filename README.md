@@ -9,7 +9,8 @@ nights, and January 28 to three nights. Earlier dates keep their existing rules
 when they already fit inside the remaining gap.
 
 Every listing starts inactive. Use the settings page to enable only the
-properties that the scanner may update.
+properties that the scanner may update and set each property's lowest allowed
+minimum-night value.
 
 ## Render setup
 

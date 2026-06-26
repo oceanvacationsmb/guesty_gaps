@@ -75,7 +75,8 @@ const server = createServer(async (request, response) => {
           listing.nickname ||
           listing.nicknameForOwner ||
           listing.name,
-        active: activeIds.has(listing._id || listing.id)
+        active: activeIds.has(listing._id || listing.id),
+        minNightsFloor: settings.minNightsFloors?.[listing._id || listing.id] || 1
       }));
       sendJson(response, 200, {
         listings,
@@ -95,15 +96,22 @@ const server = createServer(async (request, response) => {
             listing.nicknameForOwner ||
             listing.name
         }))
-        .filter((listing) => activeIds.has(listing.id));
+        .filter((listing) => activeIds.has(listing.id))
+        .map((listing) => ({
+          ...listing,
+          minNightsFloor: settings.minNightsFloors?.[listing.id] || 1
+        }));
       sendJson(response, 200, { listings });
       return;
     }
     if (request.method === "PUT" && request.url === "/api/settings") {
       const body = await readJson(request);
-      const settings = await store.save(
-        Array.isArray(body.activeListingIds) ? body.activeListingIds : []
-      );
+      const settings = await store.save({
+        activeListingIds: Array.isArray(body.activeListingIds)
+          ? body.activeListingIds
+          : [],
+        minNightsFloors: body.minNightsFloors || {}
+      });
       sendJson(response, 200, settings);
       return;
     }

@@ -72,3 +72,20 @@ test("never changes unavailable calendar days", () => {
 
   assert.deepEqual(adjustments, []);
 });
+
+test("respects a configured minimum-night floor", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-01-26", "booked", 3, { b: true }),
+      day("2026-01-27", "available", 3),
+      day("2026-01-28", "available", 3),
+      day("2026-01-29", "booked", 3, { b: true })
+    ],
+    { minNightsFloor: 2 }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-01-27", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-01-28", fromMinNights: 3, toMinNights: 2 }
+  ]);
+});
