@@ -12,6 +12,15 @@ test("loads the committed property selection JSON locally", async () => {
   const expectedFloors = Object.fromEntries(
     expectedIds.map((id) => [id, Number(committed.minNightsFloors?.[id] || 1)])
   );
+  const expectedGeneral = Object.fromEntries(
+    expectedIds.map((id) => [
+      id,
+      Math.max(
+        Number(committed.minNightsFloors?.[id] || 1),
+        Number(committed.generalMinNights?.[id] || 3)
+      )
+    ])
+  );
   const expectedStepDown = Object.fromEntries(
     expectedIds.map((id) => [id, Boolean(committed.stepDownByGap?.[id])])
   );
@@ -19,6 +28,7 @@ test("loads the committed property selection JSON locally", async () => {
   assert.deepEqual(await store.load(), {
     activeListingIds: expectedIds,
     minNightsFloors: expectedFloors,
+    generalMinNights: expectedGeneral,
     stepDownByGap: expectedStepDown
   });
 });
@@ -54,6 +64,10 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a857335e2001983e6d5": 2,
       "68db1a47ccc0790022ab80c6": 1
     },
+    generalMinNights: {
+      "68db1a857335e2001983e6d5": 4,
+      "68db1a47ccc0790022ab80c6": 3
+    },
     stepDownByGap: {
       "68db1a857335e2001983e6d5": true,
       "68db1a47ccc0790022ab80c6": false
@@ -67,6 +81,10 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a47ccc0790022ab80c6": 1,
       "68db1a857335e2001983e6d5": 2
     },
+    generalMinNights: {
+      "68db1a47ccc0790022ab80c6": 3,
+      "68db1a857335e2001983e6d5": 4
+    },
     stepDownByGap: {
       "68db1a47ccc0790022ab80c6": false,
       "68db1a857335e2001983e6d5": true
@@ -76,7 +94,7 @@ test("saves property selection to GitHub contents API", async () => {
   assert.equal(update.sha, "current-sha");
   assert.equal(
     Buffer.from(update.content, "base64").toString("utf8"),
-    '{\n  "activeListingIds": [\n    "68db1a47ccc0790022ab80c6",\n    "68db1a857335e2001983e6d5"\n  ],\n  "minNightsFloors": {\n    "68db1a47ccc0790022ab80c6": 1,\n    "68db1a857335e2001983e6d5": 2\n  },\n  "stepDownByGap": {\n    "68db1a47ccc0790022ab80c6": false,\n    "68db1a857335e2001983e6d5": true\n  }\n}\n'
+    '{\n  "activeListingIds": [\n    "68db1a47ccc0790022ab80c6",\n    "68db1a857335e2001983e6d5"\n  ],\n  "minNightsFloors": {\n    "68db1a47ccc0790022ab80c6": 1,\n    "68db1a857335e2001983e6d5": 2\n  },\n  "generalMinNights": {\n    "68db1a47ccc0790022ab80c6": 3,\n    "68db1a857335e2001983e6d5": 4\n  },\n  "stepDownByGap": {\n    "68db1a47ccc0790022ab80c6": false,\n    "68db1a857335e2001983e6d5": true\n  }\n}\n'
   );
 });
 
@@ -90,7 +108,7 @@ test("ignores checkbox values that are not Guesty listing ids", async () => {
         json: async () => ({
           sha: "current-sha",
           content: Buffer.from(
-            '{"activeListingIds":["on","68db1a857335e2001983e6d5"],"minNightsFloors":{"on":2,"68db1a857335e2001983e6d5":2},"stepDownByGap":{"on":true,"68db1a857335e2001983e6d5":true}}'
+            '{"activeListingIds":["on","68db1a857335e2001983e6d5"],"minNightsFloors":{"on":2,"68db1a857335e2001983e6d5":2},"generalMinNights":{"on":4,"68db1a857335e2001983e6d5":4},"stepDownByGap":{"on":true,"68db1a857335e2001983e6d5":true}}'
           ).toString("base64")
         })
       };
@@ -108,6 +126,7 @@ test("ignores checkbox values that are not Guesty listing ids", async () => {
   assert.deepEqual(await store.load(), {
     activeListingIds: ["68db1a857335e2001983e6d5"],
     minNightsFloors: { "68db1a857335e2001983e6d5": 2 },
+    generalMinNights: { "68db1a857335e2001983e6d5": 4 },
     stepDownByGap: { "68db1a857335e2001983e6d5": true }
   });
 });

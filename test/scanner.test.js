@@ -30,6 +30,7 @@ test("live scan leaves existing all-three values for a floor-two property", asyn
     config: { dryRun: false, scanDays: 180 },
     activeListingIds: ["test-listing"],
     minNightsFloors: { "test-listing": 2 },
+    generalMinNights: { "test-listing": 3 },
     stepDownByGap: { "test-listing": false }
   });
 
@@ -62,6 +63,7 @@ test("live scan raises existing one-night values to a floor of two", async () =>
     config: { dryRun: false, scanDays: 180 },
     activeListingIds: ["test-listing"],
     minNightsFloors: { "test-listing": 2 },
+    generalMinNights: { "test-listing": 3 },
     stepDownByGap: { "test-listing": false }
   });
 
@@ -95,6 +97,7 @@ test("dry-run reports every adjustment without writing", async () => {
     config: { dryRun: true, scanDays: 180 },
     activeListingIds: ["test-listing"],
     minNightsFloors: { "test-listing": 1 },
+    generalMinNights: { "test-listing": 3 },
     stepDownByGap: { "test-listing": false }
   });
 
@@ -127,6 +130,7 @@ test("live scan applies step-down pattern for enabled properties", async () => {
     config: { dryRun: false, scanDays: 180 },
     activeListingIds: ["test-listing"],
     minNightsFloors: { "test-listing": 2 },
+    generalMinNights: { "test-listing": 4 },
     stepDownByGap: { "test-listing": true }
   });
 
@@ -142,6 +146,7 @@ test("live scan applies step-down pattern for enabled properties", async () => {
     ]
   ]);
   assert.equal(result.listings[0].stepDownByGap, true);
+  assert.equal(result.listings[0].generalMinNights, 4);
   assert.equal(result.adjustmentCount, 4);
   assert.equal(result.appliedCount, 4);
 });

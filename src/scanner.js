@@ -42,6 +42,7 @@ export async function scanActiveListings({
   config,
   activeListingIds,
   minNightsFloors = {},
+  generalMinNights = {},
   stepDownByGap = {}
 }) {
   const startDate = formatDateInTimeZone(new Date(), config.timeZone);
@@ -58,6 +59,7 @@ export async function scanActiveListings({
       id,
       title: listingName(metadata) || id,
       minNightsFloor: minNightsFloors[id] || 1,
+      generalMinNights: generalMinNights[id] || 3,
       stepDownByGap: Boolean(stepDownByGap[id])
     };
   });
@@ -76,6 +78,7 @@ export async function scanActiveListings({
     const days = calendars.get(listing.id) || [];
     const adjustments = findMinNightAdjustments(days, {
       minNightsFloor: listing.minNightsFloor,
+      generalMinNights: listing.generalMinNights,
       stepDownByGap: listing.stepDownByGap
     });
 

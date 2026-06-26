@@ -21,6 +21,10 @@ function isAvailable(day) {
 
 export function findMinNightAdjustments(days, options = {}) {
   const minNightsFloor = Math.max(1, Number(options.minNightsFloor || 1));
+  const generalMinNights = Math.max(
+    minNightsFloor,
+    Number(options.generalMinNights || 3)
+  );
   const stepDownByGap = Boolean(options.stepDownByGap);
   const sortedDays = [...days]
     .filter((day) => day?.date)
@@ -61,7 +65,14 @@ export function findMinNightAdjustments(days, options = {}) {
       const day = sortedDays[dayIndex];
       const currentMinNights = Number(day.minNights);
       const nightsUntilNextStay = endIndex - dayIndex + 1;
-      const targetMinNights = Math.max(nightsUntilNextStay, minNightsFloor);
+      const uncappedTargetMinNights = Math.max(nightsUntilNextStay, minNightsFloor);
+      const cappedTargetMinNights = Math.max(
+        Math.min(nightsUntilNextStay, generalMinNights),
+        minNightsFloor
+      );
+      const targetMinNights = stepDownByGap
+        ? cappedTargetMinNights
+        : uncappedTargetMinNights;
 
       if (!Number.isInteger(currentMinNights)) continue;
 

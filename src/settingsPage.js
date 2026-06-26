@@ -64,7 +64,7 @@ export const propertiesPage = `<!doctype html>
   </head>
   <body>
     <h1>Property Settings</h1>
-    <p>Enable properties and choose the lowest minimum nights the scanner may set for each one. Saving commits your selection to GitHub.</p>
+    <p>Enable properties and choose the normal rule plus the lowest gap minimum. Step-down gaps will never go above the general minimum or below the gap minimum.</p>
     <nav>
       <a class="active" href="/properties">Property Settings</a>
       <a href="/scan">Scan &amp; Adjust</a>
@@ -84,7 +84,8 @@ export const propertiesPage = `<!doctype html>
           document.getElementById("listings").innerHTML = data.listings.map((listing) =>
             '<label class="listing"><input class="active-listing" type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
             '<span style="flex:1">' + escapeHtml(listing.title || listing.id) + ' <small>(' + escapeHtml(listing.id) + ')</small></span>' +
-            '<span>Lowest min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
+            '<span>General min nights: <input class="general" type="number" min="1" max="30" value="' + escapeHtml(listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
+            '<span>Gap min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
             '<span><input class="step-down" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (listing.stepDownByGap ? ' checked' : '') + '> Step down gaps</span></label>'
           ).join("");
           show(data.listings.length + " properties loaded. " + data.activeCount + " enabled.");
@@ -101,6 +102,14 @@ export const propertiesPage = `<!doctype html>
         }
         return floors;
       }
+      function generalMinNights() {
+        const values = {};
+        for (const id of selectedIds()) {
+          const input = document.querySelector('.general[data-listing-id="' + CSS.escape(id) + '"]');
+          values[id] = Math.max(1, Number(input?.value || 3));
+        }
+        return values;
+      }
       function stepDownByGap() {
         const values = {};
         for (const id of selectedIds()) {
@@ -111,7 +120,7 @@ export const propertiesPage = `<!doctype html>
       }
       async function save() {
         try {
-          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors(), stepDownByGap: stepDownByGap() }) });
+          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors(), generalMinNights: generalMinNights(), stepDownByGap: stepDownByGap() }) });
           show("PROPERTY SETTINGS SAVED SUCCESSFULLY. " + data.activeListingIds.length + " properties enabled.", "success");
         } catch (error) { show(error.message, "error"); }
       }
@@ -149,7 +158,7 @@ export const scanPage = `<!doctype html>
           const data = await api("/api/enabled-listings");
           document.getElementById("listings").innerHTML = data.listings.length
             ? '<h3>Enabled properties</h3>' + data.listings.map((listing) =>
-                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' - lowest min nights ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ' - step-down enabled' : '') + '</div>'
+                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' - general min ' + escapeHtml(listing.generalMinNights || 3) + ' - gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ' - step-down enabled' : '') + '</div>'
               ).join("")
             : '<p>No properties are enabled. Use Property Settings first.</p>';
           show(data.listings.length + " enabled properties loaded.");
@@ -195,7 +204,7 @@ export const scanPage = `<!doctype html>
               ).join("") + '</ul>'
             : '<div class="result-details">No eligible gaps found.</div>';
           return '<div class="result-row"><div class="result-title"><span>' +
-            escapeHtml(listing.title || listing.id) + ' <small>(floor ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ', step-down' : '') + ')</small></span><span>' +
+            escapeHtml(listing.title || listing.id) + ' <small>(general ' + escapeHtml(listing.generalMinNights || 3) + ', gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ', step-down' : '') + ')</small></span><span>' +
             countText + '</span></div>' + details + '</div>';
         }).join("");
         document.getElementById("listings").innerHTML =

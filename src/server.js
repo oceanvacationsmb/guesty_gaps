@@ -77,6 +77,7 @@ const server = createServer(async (request, response) => {
           listing.name,
         active: activeIds.has(listing._id || listing.id),
         minNightsFloor: settings.minNightsFloors?.[listing._id || listing.id] || 1,
+        generalMinNights: settings.generalMinNights?.[listing._id || listing.id] || 3,
         stepDownByGap: Boolean(settings.stepDownByGap?.[listing._id || listing.id])
       }));
       sendJson(response, 200, {
@@ -101,6 +102,7 @@ const server = createServer(async (request, response) => {
         .map((listing) => ({
           ...listing,
           minNightsFloor: settings.minNightsFloors?.[listing.id] || 1,
+          generalMinNights: settings.generalMinNights?.[listing.id] || 3,
           stepDownByGap: Boolean(settings.stepDownByGap?.[listing.id])
         }));
       sendJson(response, 200, { listings });
@@ -113,6 +115,7 @@ const server = createServer(async (request, response) => {
           ? body.activeListingIds
           : [],
         minNightsFloors: body.minNightsFloors || {},
+        generalMinNights: body.generalMinNights || {},
         stepDownByGap: body.stepDownByGap || {}
       });
       sendJson(response, 200, settings);

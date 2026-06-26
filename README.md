@@ -9,13 +9,15 @@ nights, and January 28 to three nights. Earlier dates keep their existing rules
 when they already fit inside the remaining gap.
 
 Every listing starts inactive. Use the settings page to enable only the
-properties that the scanner may update and set each property's lowest allowed
-minimum-night value.
+properties that the scanner may update and set each property's general minimum
+and lowest allowed gap minimum.
 
 For selected properties, enable **Step down gaps** to lower open gaps by the
-remaining nights before the next reservation while respecting the property's
-lowest minimum. For example, with lowest min nights set to `2`, a four-night
-opening becomes `4, 3, 2, 2`.
+remaining nights before the next reservation. The target is capped by the
+property's general minimum and floored by its gap minimum. For example, with
+general min nights set to `4` and gap min nights set to `2`, a long opening is
+capped like `4, 4, 4, ... 4, 3, 2, 2` instead of becoming huge values such as
+`25, 24, 23`.
 
 ## Render setup
 
