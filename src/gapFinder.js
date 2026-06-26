@@ -62,10 +62,15 @@ export function findMinNightAdjustments(days, options = {}) {
       const nightsUntilNextStay = endIndex - dayIndex + 1;
       const targetMinNights = Math.max(nightsUntilNextStay, minNightsFloor);
 
-      if (
-        Number.isInteger(currentMinNights) &&
-        currentMinNights > targetMinNights
-      ) {
+      if (!Number.isInteger(currentMinNights)) continue;
+
+      if (currentMinNights < minNightsFloor) {
+        adjustments.push({
+          date: day.date,
+          fromMinNights: currentMinNights,
+          toMinNights: minNightsFloor
+        });
+      } else if (minNightsFloor === 1 && currentMinNights > targetMinNights) {
         adjustments.push({
           date: day.date,
           fromMinNights: currentMinNights,
