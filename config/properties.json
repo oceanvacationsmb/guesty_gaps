@@ -21,7 +21,8 @@
     "69d80a5bb73d3b0012fdaf1f",
     "69db0826f579c50013546169",
     "69db12bff579c50013548a0d",
-    "69db12c790763a00130d40bc"
+    "69db12c790763a00130d40bc",
+    "on"
   ],
   "minNightsFloors": {
     "68db1a3f34efe70012fd1284": 2,
@@ -45,6 +46,32 @@
     "69d80a5bb73d3b0012fdaf1f": 2,
     "69db0826f579c50013546169": 2,
     "69db12bff579c50013548a0d": 2,
-    "69db12c790763a00130d40bc": 2
+    "69db12c790763a00130d40bc": 2,
+    "on": 1
+  },
+  "stepDownByGap": {
+    "68db1a3f34efe70012fd1284": true,
+    "68db1a47ccc0790022ab80c6": true,
+    "68db1a4bccc0790022ab8212": true,
+    "68db1a56f6b4630013c166e4": true,
+    "68db1a8377268a002104280b": false,
+    "68db1a857335e2001983e6d5": false,
+    "68db1a86479709001feb4658": false,
+    "68db1a89479709001feb4778": false,
+    "68db1a8a7335e2001983e8be": false,
+    "68db1a946161980013066467": false,
+    "68db1a9bdeac7b0020520c32": true,
+    "68db1aafc739430011e46252": false,
+    "6938bc53905f8d001b7450c5": false,
+    "6938c594c45135001d4d025c": false,
+    "694b01fa4449ce002bbbe914": false,
+    "694b322c775dff001434ee84": false,
+    "6952c10b0b7c850013cdd54b": true,
+    "698150b5c6f817001429045a": true,
+    "69d80a5bb73d3b0012fdaf1f": true,
+    "69db0826f579c50013546169": true,
+    "69db12bff579c50013548a0d": true,
+    "69db12c790763a00130d40bc": true,
+    "on": false
   }
 }
