@@ -82,7 +82,7 @@ export const propertiesPage = `<!doctype html>
         try {
           const data = await api("/api/listings");
           document.getElementById("listings").innerHTML = data.listings.map((listing) =>
-            '<label class="listing"><input type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
+            '<label class="listing"><input class="active-listing" type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
             '<span style="flex:1">' + escapeHtml(listing.title || listing.id) + ' <small>(' + escapeHtml(listing.id) + ')</small></span>' +
             '<span>Lowest min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
             '<span><input class="step-down" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (listing.stepDownByGap ? ' checked' : '') + '> Step down gaps</span></label>'
@@ -91,7 +91,7 @@ export const propertiesPage = `<!doctype html>
         } catch (error) { show(error.message, "error"); }
       }
       function selectedIds() {
-        return [...document.querySelectorAll("input[type=checkbox]:checked")].map((input) => input.value);
+        return [...document.querySelectorAll("input.active-listing:checked")].map((input) => input.value);
       }
       function minNightsFloors() {
         const floors = {};

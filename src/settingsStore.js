@@ -1,12 +1,16 @@
 import { readFile } from "node:fs/promises";
 
+const LISTING_ID_PATTERN = /^[0-9a-fA-F]{24}$/;
+
 function normalize(input) {
   const activeListingIds = Array.isArray(input)
     ? input
     : input?.activeListingIds || [];
   const rawFloors = Array.isArray(input) ? {} : input?.minNightsFloors || {};
   const rawStepDown = Array.isArray(input) ? {} : input?.stepDownByGap || {};
-  const normalizedIds = [...new Set(activeListingIds.map(String))].sort();
+  const normalizedIds = [
+    ...new Set(activeListingIds.map(String).filter((id) => LISTING_ID_PATTERN.test(id)))
+  ].sort();
   const minNightsFloors = {};
   const stepDownByGap = {};
 
