@@ -21,6 +21,7 @@ function isAvailable(day) {
 
 export function findMinNightAdjustments(days, options = {}) {
   const minNightsFloor = Math.max(1, Number(options.minNightsFloor || 1));
+  const stepDownByGap = Boolean(options.stepDownByGap);
   const sortedDays = [...days]
     .filter((day) => day?.date)
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -70,7 +71,10 @@ export function findMinNightAdjustments(days, options = {}) {
           fromMinNights: currentMinNights,
           toMinNights: minNightsFloor
         });
-      } else if (minNightsFloor === 1 && currentMinNights > targetMinNights) {
+      } else if (
+        (minNightsFloor === 1 || stepDownByGap) &&
+        currentMinNights > targetMinNights
+      ) {
         adjustments.push({
           date: day.date,
           fromMinNights: currentMinNights,

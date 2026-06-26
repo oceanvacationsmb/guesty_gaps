@@ -5,17 +5,21 @@ function normalize(input) {
     ? input
     : input?.activeListingIds || [];
   const rawFloors = Array.isArray(input) ? {} : input?.minNightsFloors || {};
+  const rawStepDown = Array.isArray(input) ? {} : input?.stepDownByGap || {};
   const normalizedIds = [...new Set(activeListingIds.map(String))].sort();
   const minNightsFloors = {};
+  const stepDownByGap = {};
 
   for (const id of normalizedIds) {
     const value = Number(rawFloors[id] || 1);
     minNightsFloors[id] = Number.isInteger(value) && value > 0 ? value : 1;
+    stepDownByGap[id] = Boolean(rawStepDown[id]);
   }
 
   return {
     activeListingIds: normalizedIds,
-    minNightsFloors
+    minNightsFloors,
+    stepDownByGap
   };
 }
 

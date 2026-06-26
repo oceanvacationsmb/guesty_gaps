@@ -29,7 +29,8 @@ test("live scan leaves existing all-three values for a floor-two property", asyn
     },
     config: { dryRun: false, scanDays: 180 },
     activeListingIds: ["test-listing"],
-    minNightsFloors: { "test-listing": 2 }
+    minNightsFloors: { "test-listing": 2 },
+    stepDownByGap: { "test-listing": false }
   });
 
   assert.deepEqual(calls, []);
@@ -60,7 +61,8 @@ test("live scan raises existing one-night values to a floor of two", async () =>
     },
     config: { dryRun: false, scanDays: 180 },
     activeListingIds: ["test-listing"],
-    minNightsFloors: { "test-listing": 2 }
+    minNightsFloors: { "test-listing": 2 },
+    stepDownByGap: { "test-listing": false }
   });
 
   assert.deepEqual(calls, [
@@ -92,10 +94,54 @@ test("dry-run reports every adjustment without writing", async () => {
     },
     config: { dryRun: true, scanDays: 180 },
     activeListingIds: ["test-listing"],
-    minNightsFloors: { "test-listing": 1 }
+    minNightsFloors: { "test-listing": 1 },
+    stepDownByGap: { "test-listing": false }
   });
 
   assert.deepEqual(calls, []);
   assert.equal(result.adjustmentCount, 2);
   assert.equal(result.appliedCount, 0);
+});
+
+test("live scan applies step-down pattern for enabled properties", async () => {
+  const calls = [];
+  const result = await scanActiveListings({
+    client: {
+      getListings: async () => [
+        { _id: "test-listing", title: "Ocean View Condo" }
+      ],
+      getCalendars: async () =>
+        [
+          day("2026-06-08", "booked", 3, { b: true }),
+          day("2026-06-09", "available", 5),
+          day("2026-06-10", "available", 5),
+          day("2026-06-11", "available", 5),
+          day("2026-06-12", "available", 5),
+          day("2026-06-13", "booked", 3, { b: true })
+        ].map((calendarDay) => ({
+          ...calendarDay,
+          listingId: "test-listing"
+        })),
+      setMinNightsBulk: async (...args) => calls.push(args)
+    },
+    config: { dryRun: false, scanDays: 180 },
+    activeListingIds: ["test-listing"],
+    minNightsFloors: { "test-listing": 2 },
+    stepDownByGap: { "test-listing": true }
+  });
+
+  assert.deepEqual(calls, [
+    [
+      "test-listing",
+      [
+        { date: "2026-06-09", fromMinNights: 5, toMinNights: 4 },
+        { date: "2026-06-10", fromMinNights: 5, toMinNights: 3 },
+        { date: "2026-06-11", fromMinNights: 5, toMinNights: 2 },
+        { date: "2026-06-12", fromMinNights: 5, toMinNights: 2 }
+      ]
+    ]
+  ]);
+  assert.equal(result.listings[0].stepDownByGap, true);
+  assert.equal(result.adjustmentCount, 4);
+  assert.equal(result.appliedCount, 4);
 });

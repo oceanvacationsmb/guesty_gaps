@@ -12,6 +12,11 @@ Every listing starts inactive. Use the settings page to enable only the
 properties that the scanner may update and set each property's lowest allowed
 minimum-night value.
 
+For selected properties, enable **Step down gaps** to lower open gaps by the
+remaining nights before the next reservation while respecting the property's
+lowest minimum. For example, with lowest min nights set to `2`, a four-night
+opening becomes `4, 3, 2, 2`.
+
 ## Render setup
 
 Create a Render Web Service connected to this repository:

@@ -9,10 +9,17 @@ test("loads the committed property selection JSON locally", async () => {
   const store = new SettingsStore({ path });
   const committed = JSON.parse(await readFile(path, "utf8"));
   const expectedIds = [...new Set(committed.activeListingIds.map(String))].sort();
+  const expectedFloors = Object.fromEntries(
+    expectedIds.map((id) => [id, Number(committed.minNightsFloors?.[id] || 1)])
+  );
+  const expectedStepDown = Object.fromEntries(
+    expectedIds.map((id) => [id, Boolean(committed.stepDownByGap?.[id])])
+  );
 
   assert.deepEqual(await store.load(), {
     activeListingIds: expectedIds,
-    minNightsFloors: Object.fromEntries(expectedIds.map((id) => [id, 1]))
+    minNightsFloors: expectedFloors,
+    stepDownByGap: expectedStepDown
   });
 });
 
@@ -43,19 +50,21 @@ test("saves property selection to GitHub contents API", async () => {
 
   const saved = await store.save({
     activeListingIds: ["listing-b", "listing-a"],
-    minNightsFloors: { "listing-a": 2, "listing-b": 1 }
+    minNightsFloors: { "listing-a": 2, "listing-b": 1 },
+    stepDownByGap: { "listing-a": true, "listing-b": false }
   });
   const update = JSON.parse(requests[1].options.body);
 
   assert.deepEqual(saved, {
     activeListingIds: ["listing-a", "listing-b"],
-    minNightsFloors: { "listing-a": 2, "listing-b": 1 }
+    minNightsFloors: { "listing-a": 2, "listing-b": 1 },
+    stepDownByGap: { "listing-a": true, "listing-b": false }
   });
   assert.equal(requests[1].options.method, "PUT");
   assert.equal(update.sha, "current-sha");
   assert.equal(
     Buffer.from(update.content, "base64").toString("utf8"),
-    '{\n  "activeListingIds": [\n    "listing-a",\n    "listing-b"\n  ],\n  "minNightsFloors": {\n    "listing-a": 2,\n    "listing-b": 1\n  }\n}\n'
+    '{\n  "activeListingIds": [\n    "listing-a",\n    "listing-b"\n  ],\n  "minNightsFloors": {\n    "listing-a": 2,\n    "listing-b": 1\n  },\n  "stepDownByGap": {\n    "listing-a": true,\n    "listing-b": false\n  }\n}\n'
   );
 });
 

@@ -41,7 +41,8 @@ export async function scanActiveListings({
   client,
   config,
   activeListingIds,
-  minNightsFloors = {}
+  minNightsFloors = {},
+  stepDownByGap = {}
 }) {
   const startDate = formatDateInTimeZone(new Date(), config.timeZone);
   const endDate = addDays(startDate, config.scanDays);
@@ -56,7 +57,8 @@ export async function scanActiveListings({
     return {
       id,
       title: listingName(metadata) || id,
-      minNightsFloor: minNightsFloors[id] || 1
+      minNightsFloor: minNightsFloors[id] || 1,
+      stepDownByGap: Boolean(stepDownByGap[id])
     };
   });
   const result = { dryRun: config.dryRun, startDate, endDate, listings: [] };
@@ -73,7 +75,8 @@ export async function scanActiveListings({
   for (const listing of listings) {
     const days = calendars.get(listing.id) || [];
     const adjustments = findMinNightAdjustments(days, {
-      minNightsFloor: listing.minNightsFloor
+      minNightsFloor: listing.minNightsFloor,
+      stepDownByGap: listing.stepDownByGap
     });
 
     for (const adjustment of adjustments) {

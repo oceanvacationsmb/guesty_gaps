@@ -119,3 +119,24 @@ test("does not raise an existing all-three minimum above the configured floor", 
 
   assert.deepEqual(adjustments, []);
 });
+
+test("steps down a four-night gap to 4,3,2,2 when enabled", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-01-26", "booked", 3, { b: true }),
+      day("2026-01-27", "available", 5),
+      day("2026-01-28", "available", 5),
+      day("2026-01-29", "available", 5),
+      day("2026-01-30", "available", 5),
+      day("2026-01-31", "booked", 3, { b: true })
+    ],
+    { minNightsFloor: 2, stepDownByGap: true }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-01-27", fromMinNights: 5, toMinNights: 4 },
+    { date: "2026-01-28", fromMinNights: 5, toMinNights: 3 },
+    { date: "2026-01-29", fromMinNights: 5, toMinNights: 2 },
+    { date: "2026-01-30", fromMinNights: 5, toMinNights: 2 }
+  ]);
+});
