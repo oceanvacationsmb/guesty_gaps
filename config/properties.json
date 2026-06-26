@@ -111,8 +111,8 @@
       "id": "labor-day",
       "name": "Labor Day",
       "type": "labor-day",
-      "start": "",
-      "end": ""
+      "start": "01-01",
+      "end": "12-31"
     },
     {
       "id": "thanksgiving",
@@ -136,6 +136,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -144,6 +145,8 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
+      "summer": 4,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -153,6 +156,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -162,6 +166,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -171,6 +176,7 @@
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 3,
       "thanksgiving": 3,
       "christmas": 3
     },
@@ -180,16 +186,27 @@
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 3,
       "thanksgiving": 3,
       "christmas": 3
     },
-    "68db1a86479709001feb4658": {},
+    "68db1a86479709001feb4658": {
+      "off-season": 3,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "labor-day": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
     "68db1a89479709001feb4778": {
       "off-season": 2,
       "bike-week": 3,
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 4,
       "thanksgiving": 3,
       "christmas": 3
     },
@@ -199,6 +216,7 @@
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 3,
       "thanksgiving": 3,
       "christmas": 3
     },
@@ -208,6 +226,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 4,
+      "labor-day": 3,
       "thanksgiving": 4,
       "christmas": 3
     },
@@ -217,6 +236,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -226,6 +246,7 @@
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 3,
       "thanksgiving": 3,
       "christmas": 3
     },
@@ -235,6 +256,7 @@
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 3,
       "thanksgiving": 3,
       "christmas": 3
     },
@@ -244,6 +266,7 @@
       "easter": 3,
       "memorial": 3,
       "summer": 3,
+      "labor-day": 3,
       "thanksgiving": 3,
       "christmas": 3
     },
@@ -253,6 +276,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 4,
+      "labor-day": 3,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -262,6 +286,7 @@
       "easter": 3,
       "memorial": 4,
       "summer": 4,
+      "labor-day": 3,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -271,6 +296,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -280,6 +306,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -289,6 +316,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -298,6 +326,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -307,6 +336,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     },
@@ -316,6 +346,7 @@
       "easter": 4,
       "memorial": 4,
       "summer": 7,
+      "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
     }
