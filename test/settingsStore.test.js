@@ -4,6 +4,16 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { SettingsStore } from "../src/settingsStore.js";
 
+const DEFAULT_EVENT_RULES = [
+  { id: "off-season", name: "Off Season", start: "09-02", end: "02-28" },
+  { id: "bike-week", name: "Bike Week", start: "05-08", end: "05-17" },
+  { id: "easter", name: "Easter", start: "03-20", end: "04-20" },
+  { id: "memorial", name: "Memorial", start: "05-20", end: "05-31" },
+  { id: "summer", name: "Summer", start: "05-25", end: "09-04" },
+  { id: "thanksgiving", name: "Thanksgiving", start: "11-24", end: "11-30" },
+  { id: "christmas", name: "Christmas/New Year", start: "12-23", end: "12-31" }
+];
+
 test("loads the committed property selection JSON locally", async () => {
   const path = join("config", "properties.json");
   const store = new SettingsStore({ path });
@@ -24,11 +34,16 @@ test("loads the committed property selection JSON locally", async () => {
   const expectedStepDown = Object.fromEntries(
     expectedIds.map((id) => [id, Boolean(committed.stepDownByGap?.[id])])
   );
+  const expectedPropertyEvents = Object.fromEntries(
+    expectedIds.map((id) => [id, committed.propertyEventMinNights?.[id] || {}])
+  );
 
   assert.deepEqual(await store.load(), {
     activeListingIds: expectedIds,
     minNightsFloors: expectedFloors,
     generalMinNights: expectedGeneral,
+    eventRules: committed.eventRules || DEFAULT_EVENT_RULES,
+    propertyEventMinNights: expectedPropertyEvents,
     stepDownByGap: expectedStepDown
   });
 });
@@ -68,6 +83,14 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a857335e2001983e6d5": 4,
       "68db1a47ccc0790022ab80c6": 3
     },
+    eventRules: [
+      { id: "summer", name: "Summer", start: "05-25", end: "09-04" },
+      { id: "thanksgiving", name: "Thanksgiving", start: "11-24", end: "11-30" }
+    ],
+    propertyEventMinNights: {
+      "68db1a857335e2001983e6d5": { summer: 7 },
+      "68db1a47ccc0790022ab80c6": { thanksgiving: 4 }
+    },
     stepDownByGap: {
       "68db1a857335e2001983e6d5": true,
       "68db1a47ccc0790022ab80c6": false
@@ -85,6 +108,13 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a47ccc0790022ab80c6": 3,
       "68db1a857335e2001983e6d5": 4
     },
+    eventRules: [
+      ...DEFAULT_EVENT_RULES
+    ],
+    propertyEventMinNights: {
+      "68db1a47ccc0790022ab80c6": { thanksgiving: 4 },
+      "68db1a857335e2001983e6d5": { summer: 7 }
+    },
     stepDownByGap: {
       "68db1a47ccc0790022ab80c6": false,
       "68db1a857335e2001983e6d5": true
@@ -92,10 +122,7 @@ test("saves property selection to GitHub contents API", async () => {
   });
   assert.equal(requests[1].options.method, "PUT");
   assert.equal(update.sha, "current-sha");
-  assert.equal(
-    Buffer.from(update.content, "base64").toString("utf8"),
-    '{\n  "activeListingIds": [\n    "68db1a47ccc0790022ab80c6",\n    "68db1a857335e2001983e6d5"\n  ],\n  "minNightsFloors": {\n    "68db1a47ccc0790022ab80c6": 1,\n    "68db1a857335e2001983e6d5": 2\n  },\n  "generalMinNights": {\n    "68db1a47ccc0790022ab80c6": 3,\n    "68db1a857335e2001983e6d5": 4\n  },\n  "stepDownByGap": {\n    "68db1a47ccc0790022ab80c6": false,\n    "68db1a857335e2001983e6d5": true\n  }\n}\n'
-  );
+  assert.deepEqual(JSON.parse(Buffer.from(update.content, "base64").toString("utf8")), saved);
 });
 
 test("ignores checkbox values that are not Guesty listing ids", async () => {
@@ -127,6 +154,8 @@ test("ignores checkbox values that are not Guesty listing ids", async () => {
     activeListingIds: ["68db1a857335e2001983e6d5"],
     minNightsFloors: { "68db1a857335e2001983e6d5": 2 },
     generalMinNights: { "68db1a857335e2001983e6d5": 4 },
+    eventRules: DEFAULT_EVENT_RULES,
+    propertyEventMinNights: { "68db1a857335e2001983e6d5": {} },
     stepDownByGap: { "68db1a857335e2001983e6d5": true }
   });
 });

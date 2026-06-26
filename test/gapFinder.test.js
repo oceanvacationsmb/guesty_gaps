@@ -183,3 +183,30 @@ test("caps long step-down gaps at the configured general minimum", () => {
     { date: "2026-02-01", fromMinNights: 3, toMinNights: 2 }
   ]);
 });
+
+test("event minimums override the normal gap minimum inside event dates", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-05-29", "booked", 3, { b: true }),
+      day("2026-05-30", "available", 3),
+      day("2026-05-31", "available", 3),
+      day("2026-06-01", "available", 3),
+      day("2026-06-02", "available", 3),
+      day("2026-06-03", "booked", 3, { b: true })
+    ],
+    {
+      minNightsFloor: 2,
+      generalMinNights: 4,
+      stepDownByGap: true,
+      eventRules: [{ id: "summer", name: "Summer", start: "05-25", end: "09-04" }],
+      eventMinNights: { summer: 7 }
+    }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-05-30", fromMinNights: 3, toMinNights: 7 },
+    { date: "2026-05-31", fromMinNights: 3, toMinNights: 7 },
+    { date: "2026-06-01", fromMinNights: 3, toMinNights: 7 },
+    { date: "2026-06-02", fromMinNights: 3, toMinNights: 7 }
+  ]);
+});

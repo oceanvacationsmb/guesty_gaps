@@ -78,10 +78,12 @@ const server = createServer(async (request, response) => {
         active: activeIds.has(listing._id || listing.id),
         minNightsFloor: settings.minNightsFloors?.[listing._id || listing.id] || 1,
         generalMinNights: settings.generalMinNights?.[listing._id || listing.id] || 3,
+        eventMinNights: settings.propertyEventMinNights?.[listing._id || listing.id] || {},
         stepDownByGap: Boolean(settings.stepDownByGap?.[listing._id || listing.id])
       }));
       sendJson(response, 200, {
         listings,
+        eventRules: settings.eventRules || [],
         activeCount: listings.filter((listing) => listing.active).length
       });
       return;
@@ -103,9 +105,10 @@ const server = createServer(async (request, response) => {
           ...listing,
           minNightsFloor: settings.minNightsFloors?.[listing.id] || 1,
           generalMinNights: settings.generalMinNights?.[listing.id] || 3,
+          eventMinNights: settings.propertyEventMinNights?.[listing.id] || {},
           stepDownByGap: Boolean(settings.stepDownByGap?.[listing.id])
         }));
-      sendJson(response, 200, { listings });
+      sendJson(response, 200, { listings, eventRules: settings.eventRules || [] });
       return;
     }
     if (request.method === "PUT" && request.url === "/api/settings") {
@@ -116,6 +119,8 @@ const server = createServer(async (request, response) => {
           : [],
         minNightsFloors: body.minNightsFloors || {},
         generalMinNights: body.generalMinNights || {},
+        eventRules: body.eventRules || [],
+        propertyEventMinNights: body.propertyEventMinNights || {},
         stepDownByGap: body.stepDownByGap || {}
       });
       sendJson(response, 200, settings);

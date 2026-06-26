@@ -10,6 +10,14 @@ const styles = `
   button { padding: 11px 15px; cursor: pointer; font-weight: bold; }
   .primary { color: white; background: #153d6f; border: 1px solid #153d6f; border-radius: 5px; }
   .listing { display: flex; gap: 10px; padding: 11px 4px; border-bottom: 1px solid #ddd; }
+  .listing.inactive { opacity: 0.78; }
+  .event-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .event-chip { border: 1px solid #ccd6e2; border-radius: 5px; padding: 5px 7px; white-space: nowrap; }
+  .event-chip input[type=number] { width: 52px; padding: 4px; }
+  .event-rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; margin: 12px 0; }
+  .event-rule { border: 1px solid #ccd6e2; border-radius: 5px; padding: 8px; }
+  .event-rule input[type=text] { width: 88px; padding: 6px; }
+  .separator { margin: 22px 0 8px; font-weight: bold; color: #44546a; }
   .panel { padding: 16px; background: #f4f7fa; border-radius: 5px; }
   .success { color: #17643a; background: #e9f7ef; }
   .error { color: #9e251d; background: #fbeceb; }
@@ -52,6 +60,12 @@ const scriptHelpers = `
           "'": "&#39;"
         }[char]));
       }
+      function eventSummary(eventMinNights, eventRules) {
+        const enabled = eventRules
+          .filter((rule) => Number(eventMinNights?.[rule.id] || 0) > 0)
+          .map((rule) => rule.name + " " + eventMinNights[rule.id]);
+        return enabled.length ? " - events: " + enabled.join(", ") : "";
+      }
 `;
 
 export const propertiesPage = `<!doctype html>
@@ -81,13 +95,36 @@ export const propertiesPage = `<!doctype html>
       async function loadListings() {
         try {
           const data = await api("/api/listings");
-          document.getElementById("listings").innerHTML = data.listings.map((listing) =>
-            '<label class="listing"><input class="active-listing" type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
-            '<span style="flex:1">' + escapeHtml(listing.title || listing.id) + ' <small>(' + escapeHtml(listing.id) + ')</small></span>' +
-            '<span>General min nights: <input class="general" type="number" min="1" max="30" value="' + escapeHtml(listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
-            '<span>Gap min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
-            '<span><input class="step-down" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (listing.stepDownByGap ? ' checked' : '') + '> Step down gaps</span></label>'
-          ).join("");
+          const eventRules = data.eventRules || [];
+          const eventRuleEditor = '<h3>Event Settings</h3><p>These date windows repeat every year. Use MM-DD format.</p><div class="event-rules">' +
+            eventRules.map((rule) =>
+              '<div class="event-rule"><strong>' + escapeHtml(rule.name) + '</strong><br>' +
+              '<input class="event-name" type="hidden" value="' + escapeHtml(rule.name) + '" data-event-id="' + escapeHtml(rule.id) + '">' +
+              'Start <input class="event-start" type="text" value="' + escapeHtml(rule.start) + '" data-event-id="' + escapeHtml(rule.id) + '"> ' +
+              'End <input class="event-end" type="text" value="' + escapeHtml(rule.end) + '" data-event-id="' + escapeHtml(rule.id) + '"></div>'
+            ).join("") + '</div>';
+          function listingRow(listing) {
+            const eventInputs = eventRules.map((rule) => {
+              const value = Number(listing.eventMinNights?.[rule.id] || 0);
+              return '<span class="event-chip"><input class="event-enabled" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"' + (value > 0 ? ' checked' : '') + '> ' +
+                escapeHtml(rule.name) + ' <input class="event-min" type="number" min="1" max="30" value="' + escapeHtml(value || listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"></span>';
+            }).join("");
+            return '<div class="listing' + (listing.active ? '' : ' inactive') + '">' +
+              '<input class="active-listing" type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
+              '<div style="flex:1"><div><strong>' + escapeHtml(listing.title || listing.id) + '</strong> <small>(' + escapeHtml(listing.id) + ')</small></div>' +
+              '<div class="row"><span>General min nights: <input class="general" type="number" min="1" max="30" value="' + escapeHtml(listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
+              '<span>Gap min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
+              '<span><input class="step-down" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (listing.stepDownByGap ? ' checked' : '') + '> Step down gaps</span></div>' +
+              '<div class="event-list">' + eventInputs + '</div></div></div>';
+          }
+          const activeListings = data.listings.filter((listing) => listing.active);
+          const inactiveListings = data.listings.filter((listing) => !listing.active);
+          document.getElementById("listings").innerHTML =
+            eventRuleEditor +
+            '<div class="separator">Active properties</div>' +
+            (activeListings.length ? activeListings.map(listingRow).join("") : '<p>No active properties selected.</p>') +
+            '<div class="separator">Inactive properties</div>' +
+            inactiveListings.map(listingRow).join("");
           show(data.listings.length + " properties loaded. " + data.activeCount + " enabled.");
         } catch (error) { show(error.message, "error"); }
       }
@@ -118,9 +155,29 @@ export const propertiesPage = `<!doctype html>
         }
         return values;
       }
+      function eventRules() {
+        return [...document.querySelectorAll(".event-start")].map((input) => {
+          const id = input.dataset.eventId;
+          const name = document.querySelector('.event-name[data-event-id="' + CSS.escape(id) + '"]')?.value || id;
+          const end = document.querySelector('.event-end[data-event-id="' + CSS.escape(id) + '"]')?.value || "12-31";
+          return { id, name, start: input.value || "01-01", end };
+        });
+      }
+      function propertyEventMinNights() {
+        const values = {};
+        for (const id of selectedIds()) {
+          values[id] = {};
+          for (const input of document.querySelectorAll('.event-enabled[data-listing-id="' + CSS.escape(id) + '"]:checked')) {
+            const eventId = input.dataset.eventId;
+            const minInput = document.querySelector('.event-min[data-listing-id="' + CSS.escape(id) + '"][data-event-id="' + CSS.escape(eventId) + '"]');
+            values[id][eventId] = Math.max(1, Number(minInput?.value || 1));
+          }
+        }
+        return values;
+      }
       async function save() {
         try {
-          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors(), generalMinNights: generalMinNights(), stepDownByGap: stepDownByGap() }) });
+          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors(), generalMinNights: generalMinNights(), eventRules: eventRules(), propertyEventMinNights: propertyEventMinNights(), stepDownByGap: stepDownByGap() }) });
           show("PROPERTY SETTINGS SAVED SUCCESSFULLY. " + data.activeListingIds.length + " properties enabled.", "success");
         } catch (error) { show(error.message, "error"); }
       }
@@ -158,7 +215,7 @@ export const scanPage = `<!doctype html>
           const data = await api("/api/enabled-listings");
           document.getElementById("listings").innerHTML = data.listings.length
             ? '<h3>Enabled properties</h3>' + data.listings.map((listing) =>
-                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' - general min ' + escapeHtml(listing.generalMinNights || 3) + ' - gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ' - step-down enabled' : '') + '</div>'
+                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' - general min ' + escapeHtml(listing.generalMinNights || 3) + ' - gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ' - step-down enabled' : '') + eventSummary(listing.eventMinNights || {}, data.eventRules || []) + '</div>'
               ).join("")
             : '<p>No properties are enabled. Use Property Settings first.</p>';
           show(data.listings.length + " enabled properties loaded.");
@@ -204,7 +261,7 @@ export const scanPage = `<!doctype html>
               ).join("") + '</ul>'
             : '<div class="result-details">No eligible gaps found.</div>';
           return '<div class="result-row"><div class="result-title"><span>' +
-            escapeHtml(listing.title || listing.id) + ' <small>(general ' + escapeHtml(listing.generalMinNights || 3) + ', gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ', step-down' : '') + ')</small></span><span>' +
+            escapeHtml(listing.title || listing.id) + ' <small>(general ' + escapeHtml(listing.generalMinNights || 3) + ', gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ', step-down' : '') + eventSummary(listing.eventMinNights || {}, data.eventRules || []) + ')</small></span><span>' +
             countText + '</span></div>' + details + '</div>';
         }).join("");
         document.getElementById("listings").innerHTML =

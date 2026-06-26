@@ -19,12 +19,40 @@ function isAvailable(day) {
   return String(day?.status || "").toLowerCase() === "available";
 }
 
+function datePart(dateText) {
+  return String(dateText || "").slice(5, 10);
+}
+
+function datePartInRange(value, start, end) {
+  if (!value || !start || !end) return false;
+  if (start <= end) return value >= start && value <= end;
+  return value >= start || value <= end;
+}
+
+function eventMinimumForDate(dateText, eventRules = [], eventMinNights = {}) {
+  const value = datePart(dateText);
+  let minimum = 0;
+  for (const rule of eventRules) {
+    const eventMinimum = Number(eventMinNights[rule.id] || 0);
+    if (
+      Number.isInteger(eventMinimum) &&
+      eventMinimum > minimum &&
+      datePartInRange(value, rule.start, rule.end)
+    ) {
+      minimum = eventMinimum;
+    }
+  }
+  return minimum;
+}
+
 export function findMinNightAdjustments(days, options = {}) {
   const minNightsFloor = Math.max(1, Number(options.minNightsFloor || 1));
   const generalMinNights = Math.max(
     minNightsFloor,
     Number(options.generalMinNights || 3)
   );
+  const eventRules = Array.isArray(options.eventRules) ? options.eventRules : [];
+  const eventMinNights = options.eventMinNights || {};
   const stepDownByGap = Boolean(options.stepDownByGap);
   const sortedDays = [...days]
     .filter((day) => day?.date)
@@ -65,10 +93,15 @@ export function findMinNightAdjustments(days, options = {}) {
       const day = sortedDays[dayIndex];
       const currentMinNights = Number(day.minNights);
       const nightsUntilNextStay = endIndex - dayIndex + 1;
-      const uncappedTargetMinNights = Math.max(nightsUntilNextStay, minNightsFloor);
+      const effectiveFloor = Math.max(
+        minNightsFloor,
+        eventMinimumForDate(day.date, eventRules, eventMinNights)
+      );
+      const effectiveGeneralMinNights = Math.max(generalMinNights, effectiveFloor);
+      const uncappedTargetMinNights = Math.max(nightsUntilNextStay, effectiveFloor);
       const cappedTargetMinNights = Math.max(
-        Math.min(nightsUntilNextStay, generalMinNights),
-        minNightsFloor
+        Math.min(nightsUntilNextStay, effectiveGeneralMinNights),
+        effectiveFloor
       );
       const targetMinNights = stepDownByGap
         ? cappedTargetMinNights
@@ -82,14 +115,14 @@ export function findMinNightAdjustments(days, options = {}) {
           fromMinNights: currentMinNights,
           toMinNights: targetMinNights
         });
-      } else if (currentMinNights < minNightsFloor) {
+      } else if (currentMinNights < effectiveFloor) {
         adjustments.push({
           date: day.date,
           fromMinNights: currentMinNights,
-          toMinNights: minNightsFloor
+          toMinNights: effectiveFloor
         });
       } else if (
-        (minNightsFloor === 1 || stepDownByGap) &&
+        (effectiveFloor === 1 || stepDownByGap) &&
         currentMinNights > targetMinNights
       ) {
         adjustments.push({

@@ -19,6 +19,13 @@ general min nights set to `4` and gap min nights set to `2`, a long opening is
 capped like `4, 4, 4, ... 4, 3, 2, 2` instead of becoming huge values such as
 `25, 24, 23`.
 
+The settings page also supports yearly event windows such as Off Season,
+Thanksgiving, Christmas/New Year, Memorial, Summer, Easter, and Bike Week. Each
+event has a repeatable `MM-DD` start and end date, and each active property can
+opt into that event with its own minimum-night value. When a gap date falls
+inside an enabled event, the event minimum becomes the lowest allowed value for
+that date.
+
 ## Render setup
 
 Create a Render Web Service connected to this repository:
