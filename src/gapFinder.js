@@ -51,12 +51,18 @@ function isDateInEvent(dateText, rule) {
   return datePartInRange(datePart(dateText), rule.start, rule.end);
 }
 
-function eventMinimumForDate(dateText, eventRules = [], eventMinNights = {}) {
+function eventMinimumForDate(
+  dateText,
+  eventRules = [],
+  eventMinNights = {},
+  gapNights = 0
+) {
   let minimum = 0;
   for (const rule of eventRules) {
     const eventMinimum = Number(eventMinNights[rule.id] || 0);
     if (
       Number.isInteger(eventMinimum) &&
+      gapNights >= eventMinimum &&
       eventMinimum > minimum &&
       isDateInEvent(dateText, rule)
     ) {
@@ -113,10 +119,11 @@ export function findMinNightAdjustments(days, options = {}) {
     for (let dayIndex = startIndex; dayIndex <= endIndex; dayIndex += 1) {
       const day = sortedDays[dayIndex];
       const currentMinNights = Number(day.minNights);
+      const gapNights = endIndex - startIndex + 1;
       const nightsUntilNextStay = endIndex - dayIndex + 1;
       const effectiveFloor = Math.max(
         minNightsFloor,
-        eventMinimumForDate(day.date, eventRules, eventMinNights)
+        eventMinimumForDate(day.date, eventRules, eventMinNights, gapNights)
       );
       const effectiveGeneralMinNights = Math.max(generalMinNights, effectiveFloor);
       const uncappedTargetMinNights = Math.max(nightsUntilNextStay, effectiveFloor);
