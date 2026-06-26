@@ -100,8 +100,12 @@ export const propertiesPage = `<!doctype html>
             eventRules.map((rule) =>
               '<div class="event-rule"><strong>' + escapeHtml(rule.name) + '</strong><br>' +
               '<input class="event-name" type="hidden" value="' + escapeHtml(rule.name) + '" data-event-id="' + escapeHtml(rule.id) + '">' +
-              'Start <input class="event-start" type="text" value="' + escapeHtml(rule.start) + '" data-event-id="' + escapeHtml(rule.id) + '"> ' +
-              'End <input class="event-end" type="text" value="' + escapeHtml(rule.end) + '" data-event-id="' + escapeHtml(rule.id) + '"></div>'
+              '<input class="event-type" type="hidden" value="' + escapeHtml(rule.type || "fixed") + '" data-event-id="' + escapeHtml(rule.id) + '">' +
+              (rule.type === "labor-day"
+                ? '<span>Automatic: Thursday-Sunday before the first Monday in September.</span><input class="event-start" type="hidden" value="" data-event-id="' + escapeHtml(rule.id) + '"><input class="event-end" type="hidden" value="" data-event-id="' + escapeHtml(rule.id) + '">'
+                : 'Start <input class="event-start" type="text" value="' + escapeHtml(rule.start) + '" data-event-id="' + escapeHtml(rule.id) + '"> ' +
+                  'End <input class="event-end" type="text" value="' + escapeHtml(rule.end) + '" data-event-id="' + escapeHtml(rule.id) + '">') +
+              '</div>'
             ).join("") + '</div>';
           function listingRow(listing) {
             const eventInputs = eventRules.map((rule) => {
@@ -159,8 +163,9 @@ export const propertiesPage = `<!doctype html>
         return [...document.querySelectorAll(".event-start")].map((input) => {
           const id = input.dataset.eventId;
           const name = document.querySelector('.event-name[data-event-id="' + CSS.escape(id) + '"]')?.value || id;
+          const type = document.querySelector('.event-type[data-event-id="' + CSS.escape(id) + '"]')?.value || "fixed";
           const end = document.querySelector('.event-end[data-event-id="' + CSS.escape(id) + '"]')?.value || "12-31";
-          return { id, name, start: input.value || "01-01", end };
+          return { id, name, type, start: input.value || "01-01", end };
         });
       }
       function propertyEventMinNights() {

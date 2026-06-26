@@ -20,11 +20,12 @@ capped like `4, 4, 4, ... 4, 3, 2, 2` instead of becoming huge values such as
 `25, 24, 23`.
 
 The settings page also supports yearly event windows such as Off Season,
-Thanksgiving, Christmas/New Year, Memorial, Summer, Easter, and Bike Week. Each
-event has a repeatable `MM-DD` start and end date, and each active property can
-opt into that event with its own minimum-night value. When a gap date falls
-inside an enabled event, the event minimum becomes the lowest allowed value for
-that date.
+Thanksgiving, Christmas/New Year, Memorial, Summer, Labor Day, Easter, and Bike
+Week. Fixed events have repeatable `MM-DD` start and end dates. Labor Day is
+automatic each year: Thursday through Sunday before the first Monday in
+September. Each active property can opt into each event with its own
+minimum-night value. When a gap date falls inside an enabled event, the event
+minimum becomes the lowest allowed value for that date.
 
 ## Render setup
 

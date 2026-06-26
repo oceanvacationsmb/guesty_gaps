@@ -29,15 +29,36 @@ function datePartInRange(value, start, end) {
   return value >= start || value <= end;
 }
 
+function laborDayWeekendDateParts(year) {
+  const laborDay = new Date(Date.UTC(year, 8, 1));
+  while (laborDay.getUTCDay() !== 1) {
+    laborDay.setUTCDate(laborDay.getUTCDate() + 1);
+  }
+  const dates = [];
+  for (let offset = -4; offset <= -1; offset += 1) {
+    const date = new Date(laborDay);
+    date.setUTCDate(laborDay.getUTCDate() + offset);
+    dates.push(date.toISOString().slice(5, 10));
+  }
+  return dates;
+}
+
+function isDateInEvent(dateText, rule) {
+  if (rule.type === "labor-day") {
+    const year = Number(String(dateText).slice(0, 4));
+    return laborDayWeekendDateParts(year).includes(datePart(dateText));
+  }
+  return datePartInRange(datePart(dateText), rule.start, rule.end);
+}
+
 function eventMinimumForDate(dateText, eventRules = [], eventMinNights = {}) {
-  const value = datePart(dateText);
   let minimum = 0;
   for (const rule of eventRules) {
     const eventMinimum = Number(eventMinNights[rule.id] || 0);
     if (
       Number.isInteger(eventMinimum) &&
       eventMinimum > minimum &&
-      datePartInRange(value, rule.start, rule.end)
+      isDateInEvent(dateText, rule)
     ) {
       minimum = eventMinimum;
     }

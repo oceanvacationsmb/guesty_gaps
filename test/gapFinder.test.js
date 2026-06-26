@@ -210,3 +210,30 @@ test("event minimums override the normal gap minimum inside event dates", () => 
     { date: "2026-06-02", fromMinNights: 3, toMinNights: 7 }
   ]);
 });
+
+test("labor day event covers Thursday through Sunday before the first Monday in September", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2027-09-01", "booked", 3, { b: true }),
+      day("2027-09-02", "available", 3),
+      day("2027-09-03", "available", 3),
+      day("2027-09-04", "available", 3),
+      day("2027-09-05", "available", 3),
+      day("2027-09-06", "booked", 3, { b: true })
+    ],
+    {
+      minNightsFloor: 2,
+      generalMinNights: 4,
+      stepDownByGap: true,
+      eventRules: [{ id: "labor-day", name: "Labor Day", type: "labor-day" }],
+      eventMinNights: { "labor-day": 4 }
+    }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2027-09-02", fromMinNights: 3, toMinNights: 4 },
+    { date: "2027-09-03", fromMinNights: 3, toMinNights: 4 },
+    { date: "2027-09-04", fromMinNights: 3, toMinNights: 4 },
+    { date: "2027-09-05", fromMinNights: 3, toMinNights: 4 }
+  ]);
+});

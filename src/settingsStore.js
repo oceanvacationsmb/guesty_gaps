@@ -4,13 +4,14 @@ const LISTING_ID_PATTERN = /^[0-9a-fA-F]{24}$/;
 const EVENT_ID_PATTERN = /^[a-z0-9-]+$/;
 const DATE_PART_PATTERN = /^\d{2}-\d{2}$/;
 const DEFAULT_EVENT_RULES = [
-  { id: "off-season", name: "Off Season", start: "09-02", end: "02-28" },
-  { id: "bike-week", name: "Bike Week", start: "05-08", end: "05-17" },
-  { id: "easter", name: "Easter", start: "03-20", end: "04-20" },
-  { id: "memorial", name: "Memorial", start: "05-20", end: "05-31" },
-  { id: "summer", name: "Summer", start: "05-25", end: "09-04" },
-  { id: "thanksgiving", name: "Thanksgiving", start: "11-24", end: "11-30" },
-  { id: "christmas", name: "Christmas/New Year", start: "12-23", end: "12-31" }
+  { id: "off-season", name: "Off Season", type: "fixed", start: "09-02", end: "02-28" },
+  { id: "bike-week", name: "Bike Week", type: "fixed", start: "05-08", end: "05-17" },
+  { id: "easter", name: "Easter", type: "fixed", start: "03-20", end: "04-20" },
+  { id: "memorial", name: "Memorial", type: "fixed", start: "05-20", end: "05-31" },
+  { id: "summer", name: "Summer", type: "fixed", start: "05-25", end: "09-04" },
+  { id: "labor-day", name: "Labor Day", type: "labor-day", start: "", end: "" },
+  { id: "thanksgiving", name: "Thanksgiving", type: "fixed", start: "11-24", end: "11-30" },
+  { id: "christmas", name: "Christmas/New Year", type: "fixed", start: "12-23", end: "12-31" }
 ];
 
 function normalizeEventRules(input) {
@@ -29,6 +30,9 @@ function normalizeEventRules(input) {
     byId.set(id, {
       id,
       name: String(rawRule?.name || fallback.name).trim() || fallback.name,
+      type: rawRule?.type === "labor-day" || fallback.type === "labor-day"
+        ? "labor-day"
+        : "fixed",
       start: DATE_PART_PATTERN.test(String(rawRule?.start || ""))
         ? String(rawRule.start)
         : fallback.start,
