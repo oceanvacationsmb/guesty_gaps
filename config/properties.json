@@ -75,69 +75,250 @@
     {
       "id": "off-season",
       "name": "Off Season",
+      "type": "fixed",
       "start": "09-07",
       "end": "02-28"
     },
     {
       "id": "bike-week",
       "name": "Bike Week",
+      "type": "fixed",
       "start": "05-06",
       "end": "05-15"
     },
     {
       "id": "easter",
       "name": "Easter",
+      "type": "fixed",
       "start": "03-18",
       "end": "04-20"
     },
     {
       "id": "memorial",
       "name": "Memorial",
+      "type": "fixed",
       "start": "05-27",
       "end": "05-30"
     },
     {
       "id": "summer",
       "name": "Summer",
+      "type": "fixed",
       "start": "06-03",
       "end": "09-03"
     },
     {
+      "id": "labor-day",
+      "name": "Labor Day",
+      "type": "labor-day",
+      "start": "",
+      "end": ""
+    },
+    {
       "id": "thanksgiving",
       "name": "Thanksgiving",
+      "type": "fixed",
       "start": "11-24",
       "end": "11-28"
     },
     {
       "id": "christmas",
       "name": "Christmas/New Year",
+      "type": "fixed",
       "start": "12-22",
       "end": "12-31"
     }
   ],
   "propertyEventMinNights": {
-    "68db1a3f34efe70012fd1284": {},
-    "68db1a47ccc0790022ab80c6": {},
-    "68db1a4bccc0790022ab8212": {},
-    "68db1a56f6b4630013c166e4": {},
-    "68db1a8377268a002104280b": {},
-    "68db1a857335e2001983e6d5": {},
+    "68db1a3f34efe70012fd1284": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "68db1a47ccc0790022ab80c6": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "68db1a4bccc0790022ab8212": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "68db1a56f6b4630013c166e4": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "68db1a8377268a002104280b": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
+    "68db1a857335e2001983e6d5": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
     "68db1a86479709001feb4658": {},
-    "68db1a89479709001feb4778": {},
-    "68db1a8a7335e2001983e8be": {},
-    "68db1a946161980013066467": {},
-    "68db1a9bdeac7b0020520c32": {},
-    "68db1aafc739430011e46252": {},
-    "6938bc53905f8d001b7450c5": {},
-    "6938c594c45135001d4d025c": {},
-    "694b01fa4449ce002bbbe914": {},
-    "694b322c775dff001434ee84": {},
-    "6952c10b0b7c850013cdd54b": {},
-    "698150b5c6f817001429045a": {},
-    "69d80a5bb73d3b0012fdaf1f": {},
-    "69db0826f579c50013546169": {},
-    "69db12bff579c50013548a0d": {},
-    "69db12c790763a00130d40bc": {}
+    "68db1a89479709001feb4778": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
+    "68db1a8a7335e2001983e8be": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
+    "68db1a946161980013066467": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 4,
+      "thanksgiving": 4,
+      "christmas": 3
+    },
+    "68db1a9bdeac7b0020520c32": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "68db1aafc739430011e46252": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
+    "6938bc53905f8d001b7450c5": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
+    "6938c594c45135001d4d025c": {
+      "off-season": 2,
+      "bike-week": 3,
+      "easter": 3,
+      "memorial": 3,
+      "summer": 3,
+      "thanksgiving": 3,
+      "christmas": 3
+    },
+    "694b01fa4449ce002bbbe914": {
+      "off-season": 2,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 4,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "694b322c775dff001434ee84": {
+      "off-season": 2,
+      "bike-week": 4,
+      "easter": 3,
+      "memorial": 4,
+      "summer": 4,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "6952c10b0b7c850013cdd54b": {
+      "off-season": 4,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "698150b5c6f817001429045a": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "69d80a5bb73d3b0012fdaf1f": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "69db0826f579c50013546169": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "69db12bff579c50013548a0d": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    },
+    "69db12c790763a00130d40bc": {
+      "off-season": 3,
+      "bike-week": 4,
+      "easter": 4,
+      "memorial": 4,
+      "summer": 7,
+      "thanksgiving": 4,
+      "christmas": 4
+    }
   },
   "stepDownByGap": {
     "68db1a3f34efe70012fd1284": true,
