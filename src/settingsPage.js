@@ -9,6 +9,7 @@ const styles = `
   input[type=number] { width: 72px; padding: 8px; }
   button { padding: 11px 15px; cursor: pointer; font-weight: bold; }
   .primary { color: white; background: #153d6f; border: 1px solid #153d6f; border-radius: 5px; }
+  .toggle-active { min-width: 96px; }
   .listing { display: flex; gap: 10px; padding: 11px 4px; border-bottom: 1px solid #ddd; }
   .listing.inactive { opacity: 0.78; }
   .event-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
@@ -114,8 +115,9 @@ export const propertiesPage = `<!doctype html>
               return '<span class="event-chip"><input class="event-enabled" type="checkbox" onchange="syncAllEventsCheckbox(\\'' + escapeHtml(listing.id) + '\\')" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"' + (value > 0 ? ' checked' : '') + '> ' +
                 escapeHtml(rule.name) + ' <input class="event-min" type="number" min="1" max="30" value="' + escapeHtml(value || listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"></span>';
             }).join("");
-            return '<div class="listing' + (listing.active ? '' : ' inactive') + '">' +
-              '<input class="active-listing" type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + '> ' +
+            return '<div class="listing' + (listing.active ? '' : ' inactive') + '" data-listing-id="' + escapeHtml(listing.id) + '">' +
+              '<button class="toggle-active" type="button" onclick="setListingActive(\\'' + escapeHtml(listing.id) + '\\', ' + (listing.active ? 'false' : 'true') + ')">' + (listing.active ? 'Deactivate' : 'Activate') + '</button>' +
+              '<input class="active-listing" type="checkbox" value="' + listing.id + '"' + (listing.active ? ' checked' : '') + ' hidden> ' +
               '<div style="flex:1"><div><strong>' + escapeHtml(listing.title || listing.id) + '</strong> <small>(' + escapeHtml(listing.id) + ')</small></div>' +
               '<div class="row"><span>General min nights: <input class="general" type="number" min="1" max="30" value="' + escapeHtml(listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
               '<span>Gap min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
@@ -128,11 +130,25 @@ export const propertiesPage = `<!doctype html>
           document.getElementById("listings").innerHTML =
             eventRuleEditor +
             '<div class="separator">Active properties</div>' +
-            (activeListings.length ? activeListings.map(listingRow).join("") : '<p>No active properties selected.</p>') +
+            '<div id="active-listings">' + activeListings.map(listingRow).join("") + '</div>' +
+            '<p id="no-active"' + (activeListings.length ? ' hidden' : '') + '>No active properties selected.</p>' +
             '<div class="separator">Inactive properties</div>' +
-            inactiveListings.map(listingRow).join("");
+            '<div id="inactive-listings">' + inactiveListings.map(listingRow).join("") + '</div>';
           show(data.listings.length + " properties loaded. " + data.activeCount + " enabled.");
         } catch (error) { show(error.message, "error"); }
+      }
+      function setListingActive(id, active) {
+        const row = document.querySelector('.listing[data-listing-id="' + CSS.escape(id) + '"]');
+        if (!row) return;
+        const input = row.querySelector(".active-listing");
+        const button = row.querySelector(".toggle-active");
+        input.checked = active;
+        row.classList.toggle("inactive", !active);
+        button.textContent = active ? "Deactivate" : "Activate";
+        button.setAttribute("onclick", "setListingActive('" + id.replace(/'/g, "\\\\'") + "', " + (!active) + ")");
+        document.getElementById(active ? "active-listings" : "inactive-listings").appendChild(row);
+        const hasActive = document.querySelectorAll("#active-listings .listing").length > 0;
+        document.getElementById("no-active").hidden = hasActive;
       }
       function selectedIds() {
         return [...document.querySelectorAll("input.active-listing:checked")].map((input) => input.value);
