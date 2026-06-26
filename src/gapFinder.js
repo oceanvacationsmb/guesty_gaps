@@ -65,7 +65,13 @@ export function findMinNightAdjustments(days, options = {}) {
 
       if (!Number.isInteger(currentMinNights)) continue;
 
-      if (currentMinNights < minNightsFloor) {
+      if (stepDownByGap && currentMinNights !== targetMinNights) {
+        adjustments.push({
+          date: day.date,
+          fromMinNights: currentMinNights,
+          toMinNights: targetMinNights
+        });
+      } else if (currentMinNights < minNightsFloor) {
         adjustments.push({
           date: day.date,
           fromMinNights: currentMinNights,

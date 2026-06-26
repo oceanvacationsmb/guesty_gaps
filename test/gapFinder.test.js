@@ -140,3 +140,22 @@ test("steps down a four-night gap to 4,3,2,2 when enabled", () => {
     { date: "2026-01-30", fromMinNights: 5, toMinNights: 2 }
   ]);
 });
+
+test("raises the first night when step-down target is higher than current minimum", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-01-26", "booked", 3, { b: true }),
+      day("2026-01-27", "available", 3),
+      day("2026-01-28", "available", 2),
+      day("2026-01-29", "available", 2),
+      day("2026-01-30", "available", 2),
+      day("2026-01-31", "booked", 3, { b: true })
+    ],
+    { minNightsFloor: 2, stepDownByGap: true }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-01-27", fromMinNights: 3, toMinNights: 4 },
+    { date: "2026-01-28", fromMinNights: 2, toMinNights: 3 }
+  ]);
+});
