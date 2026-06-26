@@ -108,9 +108,10 @@ export const propertiesPage = `<!doctype html>
               '</div>'
             ).join("") + '</div>';
           function listingRow(listing) {
+            const enabledEventCount = eventRules.filter((rule) => Number(listing.eventMinNights?.[rule.id] || 0) > 0).length;
             const eventInputs = eventRules.map((rule) => {
               const value = Number(listing.eventMinNights?.[rule.id] || 0);
-              return '<span class="event-chip"><input class="event-enabled" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"' + (value > 0 ? ' checked' : '') + '> ' +
+              return '<span class="event-chip"><input class="event-enabled" type="checkbox" onchange="syncAllEventsCheckbox(\\'' + escapeHtml(listing.id) + '\\')" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"' + (value > 0 ? ' checked' : '') + '> ' +
                 escapeHtml(rule.name) + ' <input class="event-min" type="number" min="1" max="30" value="' + escapeHtml(value || listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '" data-event-id="' + escapeHtml(rule.id) + '"></span>';
             }).join("");
             return '<div class="listing' + (listing.active ? '' : ' inactive') + '">' +
@@ -119,7 +120,7 @@ export const propertiesPage = `<!doctype html>
               '<div class="row"><span>General min nights: <input class="general" type="number" min="1" max="30" value="' + escapeHtml(listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
               '<span>Gap min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
               '<span><input class="step-down" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (listing.stepDownByGap ? ' checked' : '') + '> Step down gaps</span></div>' +
-              '<div class="event-list">' + eventInputs + '</div></div></div>';
+              '<div class="event-list"><span class="event-chip"><input class="event-all" type="checkbox" onchange="toggleAllEvents(\\'' + escapeHtml(listing.id) + '\\', this.checked)" data-listing-id="' + escapeHtml(listing.id) + '"' + (eventRules.length && enabledEventCount === eventRules.length ? ' checked' : '') + '> All events</span>' + eventInputs + '</div></div></div>';
           }
           const activeListings = data.listings.filter((listing) => listing.active);
           const inactiveListings = data.listings.filter((listing) => !listing.active);
@@ -158,6 +159,16 @@ export const propertiesPage = `<!doctype html>
           values[id] = Boolean(input?.checked);
         }
         return values;
+      }
+      function toggleAllEvents(id, checked) {
+        for (const input of document.querySelectorAll('.event-enabled[data-listing-id="' + CSS.escape(id) + '"]')) {
+          input.checked = checked;
+        }
+      }
+      function syncAllEventsCheckbox(id) {
+        const inputs = [...document.querySelectorAll('.event-enabled[data-listing-id="' + CSS.escape(id) + '"]')];
+        const allInput = document.querySelector('.event-all[data-listing-id="' + CSS.escape(id) + '"]');
+        if (allInput) allInput.checked = inputs.length > 0 && inputs.every((input) => input.checked);
       }
       function eventRules() {
         return [...document.querySelectorAll(".event-start")].map((input) => {

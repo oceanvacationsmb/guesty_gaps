@@ -15,6 +15,19 @@ const DEFAULT_EVENT_RULES = [
   { id: "christmas", name: "Christmas/New Year", type: "fixed", start: "12-23", end: "12-31" }
 ];
 
+function expectedEventRules(committed = {}) {
+  const byId = new Map(DEFAULT_EVENT_RULES.map((rule) => [rule.id, rule]));
+  for (const rule of committed.eventRules || []) {
+    const fallback = byId.get(rule.id);
+    byId.set(rule.id, {
+      ...fallback,
+      ...rule,
+      type: rule.type || fallback?.type || "fixed"
+    });
+  }
+  return [...byId.values()];
+}
+
 test("loads the committed property selection JSON locally", async () => {
   const path = join("config", "properties.json");
   const store = new SettingsStore({ path });
@@ -43,7 +56,7 @@ test("loads the committed property selection JSON locally", async () => {
     activeListingIds: expectedIds,
     minNightsFloors: expectedFloors,
     generalMinNights: expectedGeneral,
-    eventRules: committed.eventRules || DEFAULT_EVENT_RULES,
+    eventRules: expectedEventRules(committed),
     propertyEventMinNights: expectedPropertyEvents,
     stepDownByGap: expectedStepDown
   });
