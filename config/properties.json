@@ -135,7 +135,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -145,7 +144,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 4,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -165,7 +163,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -235,7 +232,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -295,7 +291,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -305,7 +300,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -315,7 +309,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -325,7 +318,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -335,7 +327,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -345,7 +336,6 @@
       "bike-week": 4,
       "easter": 4,
       "memorial": 4,
-      "summer": 7,
       "labor-day": 4,
       "thanksgiving": 4,
       "christmas": 4
@@ -359,7 +349,7 @@
     "68db1a8377268a002104280b": true,
     "68db1a857335e2001983e6d5": true,
     "68db1a86479709001feb4658": true,
-    "68db1a89479709001feb4778": false,
+    "68db1a89479709001feb4778": true,
     "68db1a8a7335e2001983e8be": true,
     "68db1a946161980013066467": true,
     "68db1a9bdeac7b0020520c32": true,
