@@ -73,7 +73,7 @@ test("never changes unavailable calendar days", () => {
   assert.deepEqual(adjustments, []);
 });
 
-test("respects a configured minimum-night floor", () => {
+test("opens a two-night gap down to the configured gap floor", () => {
   const adjustments = findMinNightAdjustments(
     [
       day("2026-01-26", "booked", 3, { b: true }),
@@ -84,7 +84,10 @@ test("respects a configured minimum-night floor", () => {
     { minNightsFloor: 2 }
   );
 
-  assert.deepEqual(adjustments, []);
+  assert.deepEqual(adjustments, [
+    { date: "2026-01-27", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-01-28", fromMinNights: 3, toMinNights: 2 }
+  ]);
 });
 
 test("raises existing one-night minimums to the configured floor", () => {
@@ -104,7 +107,7 @@ test("raises existing one-night minimums to the configured floor", () => {
   ]);
 });
 
-test("does not raise an existing all-three minimum above the configured floor", () => {
+test("opens the tail of an all-three gap down to the configured gap floor", () => {
   const adjustments = findMinNightAdjustments(
     [
       day("2026-01-26", "booked", 3, { b: true }),
@@ -117,7 +120,10 @@ test("does not raise an existing all-three minimum above the configured floor", 
     { minNightsFloor: 2 }
   );
 
-  assert.deepEqual(adjustments, []);
+  assert.deepEqual(adjustments, [
+    { date: "2026-01-29", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-01-30", fromMinNights: 3, toMinNights: 2 }
+  ]);
 });
 
 test("steps down a four-night gap to 4,3,2,2 when enabled", () => {
@@ -263,6 +269,66 @@ test("non-step-down gaps ignore event minimum floors and open backward", () => {
   assert.deepEqual(adjustments, [
     { date: "2026-06-28", fromMinNights: 3, toMinNights: 2 },
     { date: "2026-06-29", fromMinNights: 3, toMinNights: 1 }
+  ]);
+});
+
+test("general minimum applies to available dates outside reservation gaps", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-09-10", "available", 4),
+      day("2026-09-11", "available", 4),
+      day("2026-09-12", "unavailable", 3, { m: true })
+    ],
+    { minNightsFloor: 1, generalMinNights: 3 }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-09-10", fromMinNights: 4, toMinNights: 3 },
+    { date: "2026-09-11", fromMinNights: 4, toMinNights: 3 }
+  ]);
+});
+
+test("event minimum applies to available dates outside reservation gaps", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-12-24", "available", 3),
+      day("2026-12-25", "available", 3)
+    ],
+    {
+      minNightsFloor: 1,
+      generalMinNights: 3,
+      eventRules: [{ id: "christmas", name: "Christmas", start: "12-22", end: "12-31" }],
+      eventMinNights: { christmas: 4 }
+    }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-12-24", fromMinNights: 3, toMinNights: 4 },
+    { date: "2026-12-25", fromMinNights: 3, toMinNights: 4 }
+  ]);
+});
+
+test("last-minute minimum overrides general and event rules for the first ten days", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-12-24", "available", 4),
+      day("2026-12-25", "available", 4),
+      day("2027-01-04", "available", 4)
+    ],
+    {
+      startDate: "2026-12-24",
+      minNightsFloor: 1,
+      generalMinNights: 3,
+      lastMinuteMinNights: 2,
+      eventRules: [{ id: "christmas", name: "Christmas", start: "12-22", end: "12-31" }],
+      eventMinNights: { christmas: 4 }
+    }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-12-24", fromMinNights: 4, toMinNights: 2 },
+    { date: "2026-12-25", fromMinNights: 4, toMinNights: 2 },
+    { date: "2027-01-04", fromMinNights: 4, toMinNights: 3 }
   ]);
 });
 

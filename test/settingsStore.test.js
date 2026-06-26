@@ -45,6 +45,9 @@ test("loads the committed property selection JSON locally", async () => {
       )
     ])
   );
+  const expectedLastMinute = Object.fromEntries(
+    expectedIds.map((id) => [id, Number(committed.lastMinuteMinNights?.[id] || 0)])
+  );
   const expectedStepDown = Object.fromEntries(
     expectedIds.map((id) => [id, Boolean(committed.stepDownByGap?.[id])])
   );
@@ -56,6 +59,7 @@ test("loads the committed property selection JSON locally", async () => {
     activeListingIds: expectedIds,
     minNightsFloors: expectedFloors,
     generalMinNights: expectedGeneral,
+    lastMinuteMinNights: expectedLastMinute,
     eventRules: expectedEventRules(committed),
     propertyEventMinNights: expectedPropertyEvents,
     stepDownByGap: expectedStepDown
@@ -97,6 +101,10 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a857335e2001983e6d5": 4,
       "68db1a47ccc0790022ab80c6": 3
     },
+    lastMinuteMinNights: {
+      "68db1a857335e2001983e6d5": 2,
+      "68db1a47ccc0790022ab80c6": 0
+    },
     eventRules: [
       { id: "summer", name: "Summer", start: "05-25", end: "09-04" },
       { id: "thanksgiving", name: "Thanksgiving", start: "11-24", end: "11-30" }
@@ -121,6 +129,10 @@ test("saves property selection to GitHub contents API", async () => {
     generalMinNights: {
       "68db1a47ccc0790022ab80c6": 3,
       "68db1a857335e2001983e6d5": 4
+    },
+    lastMinuteMinNights: {
+      "68db1a47ccc0790022ab80c6": 0,
+      "68db1a857335e2001983e6d5": 2
     },
     eventRules: [
       ...DEFAULT_EVENT_RULES
@@ -168,6 +180,7 @@ test("ignores checkbox values that are not Guesty listing ids", async () => {
     activeListingIds: ["68db1a857335e2001983e6d5"],
     minNightsFloors: { "68db1a857335e2001983e6d5": 2 },
     generalMinNights: { "68db1a857335e2001983e6d5": 4 },
+    lastMinuteMinNights: { "68db1a857335e2001983e6d5": 0 },
     eventRules: DEFAULT_EVENT_RULES,
     propertyEventMinNights: { "68db1a857335e2001983e6d5": {} },
     stepDownByGap: { "68db1a857335e2001983e6d5": true }

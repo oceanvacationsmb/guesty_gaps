@@ -43,6 +43,7 @@ export async function scanActiveListings({
   activeListingIds,
   minNightsFloors = {},
   generalMinNights = {},
+  lastMinuteMinNights = {},
   eventRules = [],
   propertyEventMinNights = {},
   stepDownByGap = {}
@@ -62,6 +63,7 @@ export async function scanActiveListings({
       title: listingName(metadata) || id,
       minNightsFloor: minNightsFloors[id] || 1,
       generalMinNights: generalMinNights[id] || 3,
+      lastMinuteMinNights: lastMinuteMinNights[id] || 0,
       eventMinNights: propertyEventMinNights[id] || {},
       stepDownByGap: Boolean(stepDownByGap[id])
     };
@@ -88,6 +90,8 @@ export async function scanActiveListings({
     const adjustments = findMinNightAdjustments(days, {
       minNightsFloor: listing.minNightsFloor,
       generalMinNights: listing.generalMinNights,
+      lastMinuteMinNights: listing.lastMinuteMinNights,
+      startDate,
       eventRules,
       eventMinNights: listing.eventMinNights,
       stepDownByGap: listing.stepDownByGap

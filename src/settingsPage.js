@@ -119,6 +119,7 @@ export const propertiesPage = `<!doctype html>
               '<div style="flex:1"><div><strong>' + escapeHtml(listing.title || listing.id) + '</strong> <small>(' + escapeHtml(listing.id) + ')</small></div>' +
               '<div class="row"><span>General min nights: <input class="general" type="number" min="1" max="30" value="' + escapeHtml(listing.generalMinNights || 3) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
               '<span>Gap min nights: <input class="floor" type="number" min="1" max="30" value="' + escapeHtml(listing.minNightsFloor || 1) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
+              '<span>Last min gap: <input class="last-minute" type="number" min="0" max="30" value="' + escapeHtml(listing.lastMinuteMinNights || 0) + '" data-listing-id="' + escapeHtml(listing.id) + '"> <small>next 10 days</small></span>' +
               '<span><input class="step-down" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (listing.stepDownByGap ? ' checked' : '') + '> Step down gaps</span></div>' +
               '<div class="event-list"><span class="event-chip"><input class="event-all" type="checkbox" onchange="toggleAllEvents(\\'' + escapeHtml(listing.id) + '\\', this.checked)" data-listing-id="' + escapeHtml(listing.id) + '"' + (eventRules.length && enabledEventCount === eventRules.length ? ' checked' : '') + '> All events</span>' + eventInputs + '</div></div></div>';
           }
@@ -160,6 +161,14 @@ export const propertiesPage = `<!doctype html>
         }
         return values;
       }
+      function lastMinuteMinNights() {
+        const values = {};
+        for (const id of selectedIds()) {
+          const input = document.querySelector('.last-minute[data-listing-id="' + CSS.escape(id) + '"]');
+          values[id] = Math.max(0, Number(input?.value || 0));
+        }
+        return values;
+      }
       function toggleAllEvents(id, checked) {
         for (const input of document.querySelectorAll('.event-enabled[data-listing-id="' + CSS.escape(id) + '"]')) {
           input.checked = checked;
@@ -193,7 +202,7 @@ export const propertiesPage = `<!doctype html>
       }
       async function save() {
         try {
-          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors(), generalMinNights: generalMinNights(), eventRules: eventRules(), propertyEventMinNights: propertyEventMinNights(), stepDownByGap: stepDownByGap() }) });
+          const data = await api("/api/settings", { method: "PUT", body: JSON.stringify({ activeListingIds: selectedIds(), minNightsFloors: minNightsFloors(), generalMinNights: generalMinNights(), lastMinuteMinNights: lastMinuteMinNights(), eventRules: eventRules(), propertyEventMinNights: propertyEventMinNights(), stepDownByGap: stepDownByGap() }) });
           show("PROPERTY SETTINGS SAVED SUCCESSFULLY. " + data.activeListingIds.length + " properties enabled.", "success");
         } catch (error) { show(error.message, "error"); }
       }
@@ -212,7 +221,7 @@ export const scanPage = `<!doctype html>
   </head>
   <body>
     <h1>Scan &amp; Adjust Nights</h1>
-    <p>Scan enabled properties and adjust eligible minimum-night gaps.</p>
+    <p>Scan enabled properties and adjust available calendar dates using general, event, last-minute, and gap rules.</p>
     <nav>
       <a href="/properties">Property Settings</a>
       <a class="active" href="/scan">Scan &amp; Adjust</a>
@@ -231,7 +240,7 @@ export const scanPage = `<!doctype html>
           const data = await api("/api/enabled-listings");
           document.getElementById("listings").innerHTML = data.listings.length
             ? '<h3>Enabled properties</h3>' + data.listings.map((listing) =>
-                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' - general min ' + escapeHtml(listing.generalMinNights || 3) + ' - gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ' - step-down enabled' : '') + eventSummary(listing.eventMinNights || {}, data.eventRules || []) + '</div>'
+                '<div class="listing">' + escapeHtml(listing.title || listing.id) + ' - general min ' + escapeHtml(listing.generalMinNights || 3) + ' - gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.lastMinuteMinNights ? ' - last min ' + escapeHtml(listing.lastMinuteMinNights) : '') + (listing.stepDownByGap ? ' - step-down enabled' : '') + eventSummary(listing.eventMinNights || {}, data.eventRules || []) + '</div>'
               ).join("")
             : '<p>No properties are enabled. Use Property Settings first.</p>';
           show(data.listings.length + " enabled properties loaded.");
@@ -268,16 +277,16 @@ export const scanPage = `<!doctype html>
       function renderScanResults(data) {
         const rows = (data.listings || []).map((listing) => {
           const adjustments = listing.adjustments || [];
-          const countText = adjustments.length + " " + (adjustments.length === 1 ? "gap" : "gaps") + " adjusted";
+          const countText = adjustments.length + " " + (adjustments.length === 1 ? "date" : "dates") + " adjusted";
           const details = adjustments.length
             ? '<ul class="result-details">' + adjustments.map((adjustment) =>
                 '<li>' + escapeHtml(adjustment.date) + ': ' +
                 escapeHtml(adjustment.fromMinNights) + ' nights -> ' +
                 escapeHtml(adjustment.toMinNights) + ' nights</li>'
               ).join("") + '</ul>'
-            : '<div class="result-details">No eligible gaps found.</div>';
+            : '<div class="result-details">No eligible dates found.</div>';
           return '<div class="result-row"><div class="result-title"><span>' +
-            escapeHtml(listing.title || listing.id) + ' <small>(general ' + escapeHtml(listing.generalMinNights || 3) + ', gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.stepDownByGap ? ', step-down' : '') + eventSummary(listing.eventMinNights || {}, data.eventRules || []) + ')</small></span><span>' +
+            escapeHtml(listing.title || listing.id) + ' <small>(general ' + escapeHtml(listing.generalMinNights || 3) + ', gap min ' + escapeHtml(listing.minNightsFloor || 1) + (listing.lastMinuteMinNights ? ', last min ' + escapeHtml(listing.lastMinuteMinNights) : '') + (listing.stepDownByGap ? ', step-down' : '') + eventSummary(listing.eventMinNights || {}, data.eventRules || []) + ')</small></span><span>' +
             countText + '</span></div>' + details + '</div>';
         }).join("");
         document.getElementById("listings").innerHTML =

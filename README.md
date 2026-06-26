@@ -1,7 +1,7 @@
 # guesty_gaps
 
 `guesty_gaps` is a small Render Web Service that adjusts Guesty minimum-night
-rules inside open calendar gaps between reservations.
+rules for enabled property calendars.
 
 It does not change availability status. If the next stay begins on January 31,
 the app can reduce the minimum stay on January 30 to one night, January 29 to two
@@ -9,8 +9,20 @@ nights, and January 28 to three nights. Earlier dates keep their existing rules
 when they already fit inside the remaining gap.
 
 Every listing starts inactive. Use the settings page to enable only the
-properties that the scanner may update and set each property's general minimum
-and lowest allowed gap minimum.
+properties that the scanner may update and set each property's general minimum,
+lowest allowed gap minimum, and optional last-minute minimum.
+
+The scanner applies rules in this order:
+
+1. General min nights applies to every available calendar date in the scan
+   window.
+2. Event min nights override the general value for matching yearly windows such
+   as Thanksgiving, Christmas/New Year, Labor Day, and Summer.
+3. Last min gap overrides general and event values for the first 10 scan days
+   only. Use `0` to disable it for a property.
+4. Reservation-bounded gaps can override the date value so short openings can
+   still be booked backward toward the next stay, while never going below the
+   property's gap min nights.
 
 For selected properties, enable **Step down gaps** to lower open gaps by the
 remaining nights before the next reservation. The target is capped by the
@@ -24,10 +36,12 @@ Thanksgiving, Christmas/New Year, Memorial, Summer, Labor Day, Easter, and Bike
 Week. Fixed events have repeatable `MM-DD` start and end dates. Labor Day is
 automatic each year: Thursday through Sunday before the first Monday in
 September. Each active property can opt into each event with its own
-minimum-night value. Event minimums cap the seasonal step-down pattern, but the
-property's gap minimum remains the lowest allowed gap value. For example, a
-summer `7`-night minimum will not force a 3- or 4-night gap to `7`; short gaps
-still follow the normal step-down pattern such as `4, 3, 2, 2`.
+minimum-night value. Event minimums also apply to available dates when there is
+no reservation gap. Inside a reservation-bounded gap, event minimums cap the
+seasonal step-down pattern, but the property's gap minimum remains the lowest
+allowed gap value. For example, a summer `7`-night minimum will not force a 3-
+or 4-night gap to `7`; short gaps still follow the normal step-down pattern such
+as `4, 3, 2, 2`.
 
 ## Render setup
 

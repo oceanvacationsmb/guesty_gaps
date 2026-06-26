@@ -51,6 +51,9 @@ function normalize(input) {
     : input?.activeListingIds || [];
   const rawFloors = Array.isArray(input) ? {} : input?.minNightsFloors || {};
   const rawGeneral = Array.isArray(input) ? {} : input?.generalMinNights || {};
+  const rawLastMinute = Array.isArray(input)
+    ? {}
+    : input?.lastMinuteMinNights || {};
   const rawStepDown = Array.isArray(input) ? {} : input?.stepDownByGap || {};
   const rawPropertyEvents = Array.isArray(input)
     ? {}
@@ -62,6 +65,7 @@ function normalize(input) {
   ].sort();
   const minNightsFloors = {};
   const generalMinNights = {};
+  const lastMinuteMinNights = {};
   const stepDownByGap = {};
   const propertyEventMinNights = {};
 
@@ -74,6 +78,11 @@ function normalize(input) {
       Number.isInteger(generalValue) && generalValue > 0 ? generalValue : 3;
     minNightsFloors[id] = floor;
     generalMinNights[id] = Math.max(floor, general);
+    const lastMinuteValue = Number(rawLastMinute[id] || 0);
+    lastMinuteMinNights[id] =
+      Number.isInteger(lastMinuteValue) && lastMinuteValue > 0
+        ? lastMinuteValue
+        : 0;
     stepDownByGap[id] = Boolean(rawStepDown[id]);
     propertyEventMinNights[id] = {};
     for (const eventId of eventIds) {
@@ -88,6 +97,7 @@ function normalize(input) {
     activeListingIds: normalizedIds,
     minNightsFloors,
     generalMinNights,
+    lastMinuteMinNights,
     eventRules,
     propertyEventMinNights,
     stepDownByGap

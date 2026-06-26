@@ -13,7 +13,7 @@ const calendar = [
   day("2026-06-11", "booked", 3, { b: true })
 ];
 
-test("live scan leaves existing all-three values for a floor-two property", async () => {
+test("live scan opens an all-three two-night gap to floor two", async () => {
   const calls = [];
   const result = await scanActiveListings({
     client: {
@@ -34,11 +34,19 @@ test("live scan leaves existing all-three values for a floor-two property", asyn
     stepDownByGap: { "test-listing": false }
   });
 
-  assert.deepEqual(calls, []);
+  assert.deepEqual(calls, [
+    [
+      "test-listing",
+      [
+        { date: "2026-06-09", fromMinNights: 3, toMinNights: 2 },
+        { date: "2026-06-10", fromMinNights: 3, toMinNights: 2 }
+      ]
+    ]
+  ]);
   assert.equal(result.listings[0].minNightsFloor, 2);
   assert.equal(result.listings[0].title, "Ocean View Condo");
-  assert.equal(result.adjustmentCount, 0);
-  assert.equal(result.appliedCount, 0);
+  assert.equal(result.adjustmentCount, 2);
+  assert.equal(result.appliedCount, 2);
 });
 
 test("live scan raises existing one-night values to a floor of two", async () => {

@@ -78,6 +78,7 @@ const server = createServer(async (request, response) => {
         active: activeIds.has(listing._id || listing.id),
         minNightsFloor: settings.minNightsFloors?.[listing._id || listing.id] || 1,
         generalMinNights: settings.generalMinNights?.[listing._id || listing.id] || 3,
+        lastMinuteMinNights: settings.lastMinuteMinNights?.[listing._id || listing.id] || 0,
         eventMinNights: settings.propertyEventMinNights?.[listing._id || listing.id] || {},
         stepDownByGap: Boolean(settings.stepDownByGap?.[listing._id || listing.id])
       }));
@@ -105,6 +106,7 @@ const server = createServer(async (request, response) => {
           ...listing,
           minNightsFloor: settings.minNightsFloors?.[listing.id] || 1,
           generalMinNights: settings.generalMinNights?.[listing.id] || 3,
+          lastMinuteMinNights: settings.lastMinuteMinNights?.[listing.id] || 0,
           eventMinNights: settings.propertyEventMinNights?.[listing.id] || {},
           stepDownByGap: Boolean(settings.stepDownByGap?.[listing.id])
         }));
@@ -119,6 +121,7 @@ const server = createServer(async (request, response) => {
           : [],
         minNightsFloors: body.minNightsFloors || {},
         generalMinNights: body.generalMinNights || {},
+        lastMinuteMinNights: body.lastMinuteMinNights || {},
         eventRules: body.eventRules || [],
         propertyEventMinNights: body.propertyEventMinNights || {},
         stepDownByGap: body.stepDownByGap || {}
