@@ -24,11 +24,10 @@ Thanksgiving, Christmas/New Year, Memorial, Summer, Labor Day, Easter, and Bike
 Week. Fixed events have repeatable `MM-DD` start and end dates. Labor Day is
 automatic each year: Thursday through Sunday before the first Monday in
 September. Each active property can opt into each event with its own
-minimum-night value. When a gap date falls inside an enabled event, the event
-minimum becomes the lowest allowed value for that date only when the open gap is
-large enough to fit that event minimum. For example, a summer `7`-night minimum
-will not force a 3- or 4-night gap to `7`; short gaps still follow the normal
-step-down pattern such as `4, 3, 2, 2`.
+minimum-night value. Event minimums cap the seasonal step-down pattern, but the
+property's gap minimum remains the lowest allowed gap value. For example, a
+summer `7`-night minimum will not force a 3- or 4-night gap to `7`; short gaps
+still follow the normal step-down pattern such as `4, 3, 2, 2`.
 
 ## Render setup
 

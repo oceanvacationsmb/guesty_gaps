@@ -184,7 +184,7 @@ test("caps long step-down gaps at the configured general minimum", () => {
   ]);
 });
 
-test("event minimums do not override gaps shorter than the event minimum", () => {
+test("event minimums cap the step-down pattern without becoming the gap floor", () => {
   const adjustments = findMinNightAdjustments(
     [
       day("2026-05-29", "booked", 3, { b: true }),
@@ -210,7 +210,7 @@ test("event minimums do not override gaps shorter than the event minimum", () =>
   ]);
 });
 
-test("event minimums apply when the gap can fit the event minimum", () => {
+test("event minimums cap long step-down gaps at the event value", () => {
   const adjustments = findMinNightAdjustments(
     [
       day("2026-05-29", "booked", 3, { b: true }),
@@ -234,12 +234,35 @@ test("event minimums apply when the gap can fit the event minimum", () => {
 
   assert.deepEqual(adjustments, [
     { date: "2026-05-30", fromMinNights: 3, toMinNights: 7 },
-    { date: "2026-05-31", fromMinNights: 3, toMinNights: 7 },
-    { date: "2026-06-01", fromMinNights: 3, toMinNights: 7 },
-    { date: "2026-06-02", fromMinNights: 3, toMinNights: 7 },
-    { date: "2026-06-03", fromMinNights: 3, toMinNights: 7 },
-    { date: "2026-06-04", fromMinNights: 3, toMinNights: 7 },
-    { date: "2026-06-05", fromMinNights: 3, toMinNights: 7 }
+    { date: "2026-05-31", fromMinNights: 3, toMinNights: 6 },
+    { date: "2026-06-01", fromMinNights: 3, toMinNights: 5 },
+    { date: "2026-06-02", fromMinNights: 3, toMinNights: 4 },
+    { date: "2026-06-04", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-06-05", fromMinNights: 3, toMinNights: 2 }
+  ]);
+});
+
+test("non-step-down gaps ignore event minimum floors and open backward", () => {
+  const adjustments = findMinNightAdjustments(
+    [
+      day("2026-06-26", "booked", 3, { b: true }),
+      day("2026-06-27", "available", 3),
+      day("2026-06-28", "available", 3),
+      day("2026-06-29", "available", 3),
+      day("2026-06-30", "booked", 3, { b: true })
+    ],
+    {
+      minNightsFloor: 1,
+      generalMinNights: 3,
+      stepDownByGap: false,
+      eventRules: [{ id: "summer", name: "Summer", start: "06-03", end: "09-03" }],
+      eventMinNights: { summer: 3 }
+    }
+  );
+
+  assert.deepEqual(adjustments, [
+    { date: "2026-06-28", fromMinNights: 3, toMinNights: 2 },
+    { date: "2026-06-29", fromMinNights: 3, toMinNights: 1 }
   ]);
 });
 
@@ -264,8 +287,7 @@ test("labor day event covers Thursday through Sunday before the first Monday in 
 
   assert.deepEqual(adjustments, [
     { date: "2027-09-02", fromMinNights: 3, toMinNights: 4 },
-    { date: "2027-09-03", fromMinNights: 3, toMinNights: 4 },
-    { date: "2027-09-04", fromMinNights: 3, toMinNights: 4 },
-    { date: "2027-09-05", fromMinNights: 3, toMinNights: 4 }
+    { date: "2027-09-04", fromMinNights: 3, toMinNights: 2 },
+    { date: "2027-09-05", fromMinNights: 3, toMinNights: 2 }
   ]);
 });
