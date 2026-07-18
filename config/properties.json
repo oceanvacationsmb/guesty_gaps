@@ -366,6 +366,146 @@
       "christmas": 4
     }
   },
+  "rateCopySettings": {
+    "68db1a3f34efe70012fd1284": {
+      "bedroomCategory": "6BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": 25
+    },
+    "68db1a47ccc0790022ab80c6": {
+      "bedroomCategory": "5BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": 15
+    },
+    "68db1a4bccc0790022ab8212": {
+      "bedroomCategory": "4BR",
+      "role": "master",
+      "masterListingId": "",
+      "adjustmentPercent": 0
+    },
+    "68db1a56f6b4630013c166e4": {
+      "bedroomCategory": "6BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": 20
+    },
+    "68db1a5a249ebf0018db0f1b": {
+      "bedroomCategory": "6BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": 25
+    },
+    "68db1a8377268a002104280b": {
+      "bedroomCategory": "1BR",
+      "role": "copy",
+      "masterListingId": "68db1a8a7335e2001983e8be",
+      "adjustmentPercent": 0
+    },
+    "68db1a857335e2001983e6d5": {
+      "bedroomCategory": "1BR",
+      "role": "copy",
+      "masterListingId": "68db1a8a7335e2001983e8be",
+      "adjustmentPercent": 0
+    },
+    "68db1a86479709001feb4658": {
+      "bedroomCategory": "2BR",
+      "role": "master",
+      "masterListingId": "",
+      "adjustmentPercent": 0
+    },
+    "68db1a89479709001feb4778": {
+      "bedroomCategory": "1BR",
+      "role": "copy",
+      "masterListingId": "68db1a8a7335e2001983e8be",
+      "adjustmentPercent": -15
+    },
+    "68db1a8a7335e2001983e8be": {
+      "bedroomCategory": "1BR",
+      "role": "master",
+      "masterListingId": "",
+      "adjustmentPercent": 0
+    },
+    "68db1a946161980013066467": {
+      "bedroomCategory": "3BR",
+      "role": "copy",
+      "masterListingId": "694b01fa4449ce002bbbe914",
+      "adjustmentPercent": -10
+    },
+    "68db1a9bdeac7b0020520c32": {
+      "bedroomCategory": "5BR",
+      "role": "master",
+      "masterListingId": "",
+      "adjustmentPercent": 0
+    },
+    "68db1aafc739430011e46252": {
+      "bedroomCategory": "2BR",
+      "role": "copy",
+      "masterListingId": "68db1a86479709001feb4658",
+      "adjustmentPercent": 10
+    },
+    "6938bc53905f8d001b7450c5": {
+      "bedroomCategory": "2BR",
+      "role": "copy",
+      "masterListingId": "68db1a86479709001feb4658",
+      "adjustmentPercent": 10
+    },
+    "6938c594c45135001d4d025c": {
+      "bedroomCategory": "1BR",
+      "role": "copy",
+      "masterListingId": "68db1a8a7335e2001983e8be",
+      "adjustmentPercent": 0
+    },
+    "694b01fa4449ce002bbbe914": {
+      "bedroomCategory": "3BR",
+      "role": "master",
+      "masterListingId": "",
+      "adjustmentPercent": 0
+    },
+    "694b322c775dff001434ee84": {
+      "bedroomCategory": "3BR",
+      "role": "copy",
+      "masterListingId": "694b01fa4449ce002bbbe914",
+      "adjustmentPercent": 0
+    },
+    "6952c10b0b7c850013cdd54b": {
+      "bedroomCategory": "7BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": 30
+    },
+    "698150b5c6f817001429045a": {
+      "bedroomCategory": "5BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": 15
+    },
+    "69d80a5bb73d3b0012fdaf1f": {
+      "bedroomCategory": "4BR",
+      "role": "copy",
+      "masterListingId": "68db1a4bccc0790022ab8212",
+      "adjustmentPercent": 10
+    },
+    "69db0826f579c50013546169": {
+      "bedroomCategory": "5BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": -10
+    },
+    "69db12bff579c50013548a0d": {
+      "bedroomCategory": "5BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": -15
+    },
+    "69db12c790763a00130d40bc": {
+      "bedroomCategory": "4BR",
+      "role": "copy",
+      "masterListingId": "68db1a9bdeac7b0020520c32",
+      "adjustmentPercent": -20
+    }
+  },
   "stepDownByGap": {
     "68db1a3f34efe70012fd1284": true,
     "68db1a47ccc0790022ab80c6": true,
