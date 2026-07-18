@@ -10,6 +10,7 @@ const styles = `
   select { padding: 8px; max-width: 280px; }
   button { padding: 11px 15px; cursor: pointer; font-weight: bold; }
   .primary { color: white; background: #153d6f; border: 1px solid #153d6f; border-radius: 5px; }
+  .danger { color: white; background: #9e251d; border: 1px solid #9e251d; border-radius: 5px; }
   .toggle-active { min-width: 96px; }
   .listing { display: flex; gap: 10px; padding: 11px 4px; border-bottom: 1px solid #ddd; }
   .listing.inactive { opacity: 0.78; }
@@ -74,6 +75,9 @@ const scriptHelpers = `
           escapeHtml(item.masterTitle || item.masterListingId || "missing master") +
           " (" + escapeHtml(item.bedroomCategory || "no category") + ", " +
           sign + escapeHtml(item.adjustmentPercent || 0) + "%)";
+      }
+      function money(value) {
+        return "$" + Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
       }
 `;
 
@@ -263,7 +267,7 @@ export const rateSettingsPage = `<!doctype html>
     <div id="listings"></div>
     <script>
       ${scriptHelpers}
-      const categories = ["", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"];
+      const categories = ["", "Studio", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"];
       let activeRateListings = [];
       async function loadRateSettings() {
         try {
@@ -297,6 +301,7 @@ export const rateSettingsPage = `<!doctype html>
               option("master", "Master", setting.role || "disabled") +
               option("copy", "Copy from master", setting.role || "disabled") +
             '</select></span>' +
+            '<span><input class="rate-enabled" type="checkbox" data-listing-id="' + escapeHtml(listing.id) + '"' + (setting.enabled ? ' checked' : '') + '> Apply rates</span>' +
             '<span>Copy from: <select class="rate-master" data-listing-id="' + escapeHtml(listing.id) + '">' + masterOptions(setting.masterListingId || "") + '</select></span>' +
             '<span>Adjust %: <input class="rate-adjustment" type="number" step="0.01" min="-100" max="300" value="' + escapeHtml(setting.adjustmentPercent || 0) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
             '</div></div></div>';
@@ -308,8 +313,10 @@ export const rateSettingsPage = `<!doctype html>
         const role = document.querySelector('.rate-role[data-listing-id="' + CSS.escape(id) + '"]')?.value || "disabled";
         const master = document.querySelector('.rate-master[data-listing-id="' + CSS.escape(id) + '"]');
         const adjustment = document.querySelector('.rate-adjustment[data-listing-id="' + CSS.escape(id) + '"]');
+        const enabled = document.querySelector('.rate-enabled[data-listing-id="' + CSS.escape(id) + '"]');
         if (master) master.disabled = role !== "copy";
         if (adjustment) adjustment.disabled = role !== "copy";
+        if (enabled) enabled.disabled = role !== "copy";
       }
       function rateCopySettings() {
         const values = {};
@@ -317,11 +324,13 @@ export const rateSettingsPage = `<!doctype html>
           const id = listing.id;
           const category = document.querySelector('.rate-category[data-listing-id="' + CSS.escape(id) + '"]')?.value || "";
           const role = document.querySelector('.rate-role[data-listing-id="' + CSS.escape(id) + '"]')?.value || "disabled";
+          const enabled = Boolean(document.querySelector('.rate-enabled[data-listing-id="' + CSS.escape(id) + '"]')?.checked);
           const master = document.querySelector('.rate-master[data-listing-id="' + CSS.escape(id) + '"]')?.value || "";
           const adjustment = Number(document.querySelector('.rate-adjustment[data-listing-id="' + CSS.escape(id) + '"]')?.value || 0);
           values[id] = {
             bedroomCategory: category,
             role,
+            enabled: role === "copy" ? enabled : false,
             masterListingId: role === "copy" ? master : "",
             adjustmentPercent: role === "copy" ? adjustment : 0
           };
@@ -439,7 +448,7 @@ export const ratesPage = `<!doctype html>
   </head>
   <body>
     <h1>Copy Rates</h1>
-    <p>Preview the rate copy setup. This version does not change Guesty rates.</p>
+    <p>Preview enabled rate copy targets, then send price-only updates to Guesty when you are ready.</p>
     <nav>
       <a href="/properties">Property Settings</a>
       <a href="/scan">Scan &amp; Adjust</a>
@@ -450,30 +459,64 @@ export const ratesPage = `<!doctype html>
       <input id="key" type="password" placeholder="Settings admin key">
       <button onclick="loadPlan()">Load rate copy setup</button>
       <button class="primary" onclick="previewRates()">PREVIEW COPY RATES</button>
+      <button class="danger" onclick="applyRates()">SEND RATES TO GUESTY</button>
     </div>
     <div id="status" class="panel">Enter your admin key and load the rate copy setup.</div>
     <div id="listings"></div>
     <script>
       ${scriptHelpers}
       function renderPlan(plan) {
+        const enabledPlan = plan.filter((item) => item.enabled);
         document.getElementById("listings").innerHTML = plan.length
           ? '<h3>Rate copy plan</h3><div class="results">' + plan.map((item) =>
-              '<div class="result-row"><div class="result-title"><span>' + rateSummary(item) + '</span><span>' + (item.ready ? 'Ready' : 'Missing master') + '</span></div></div>'
+              '<div class="result-row"><div class="result-title"><span>' + rateSummary(item) + '</span><span>' + (item.enabled ? (item.ready ? 'Active' : 'Missing master') : 'Inactive') + '</span></div></div>'
             ).join("") + '</div>'
           : '<p>No rate copy targets selected yet. Use Rate Settings first.</p>';
+        return enabledPlan.length;
+      }
+      function renderResults(data) {
+        const rows = (data.listings || []).map((listing) => {
+          const adjustments = listing.adjustments || [];
+          const details = adjustments.length
+            ? '<ul class="result-details">' + adjustments.slice(0, 40).map((adjustment) =>
+                '<li>' + escapeHtml(adjustment.date) + ': master ' +
+                money(adjustment.masterPrice) + ', target ' +
+                money(adjustment.fromPrice) + ' -> ' +
+                money(adjustment.toPrice) + '</li>'
+              ).join("") + (adjustments.length > 40 ? '<li>And ' + escapeHtml(adjustments.length - 40) + ' more dates...</li>' : '') + '</ul>'
+            : '<div class="result-details">No rate changes needed.</div>';
+          return '<div class="result-row"><div class="result-title"><span>' +
+            rateSummary({
+              listingTitle: listing.title,
+              masterTitle: listing.masterTitle,
+              bedroomCategory: listing.bedroomCategory,
+              adjustmentPercent: listing.adjustmentPercent
+            }) + '</span><span>' + adjustments.length + ' dates</span></div>' + details + '</div>';
+        }).join("");
+        document.getElementById("listings").innerHTML =
+          '<h3>Rate copy results</h3><div class="results">' + rows + '</div>';
       }
       async function loadPlan() {
         try {
           const data = await api("/api/rate-settings");
-          renderPlan(data.plan || []);
-          show("Rate copy setup loaded. No rates were changed.");
+          const activeCount = renderPlan(data.plan || []);
+          show("Rate copy setup loaded. " + activeCount + " active copy targets. No rates were changed.");
         } catch (error) { show(error.message, "error"); }
       }
       async function previewRates() {
         try {
           const data = await api("/api/rates/preview", { method: "POST", body: "{}" });
-          renderPlan(data.plan || []);
-          show((data.message || "Preview complete. No Guesty rates were changed.") + " " + (data.plan || []).length + " copy targets found.", "success");
+          renderResults(data);
+          show((data.message || "Preview complete. No Guesty rates were changed.") + " " + (data.adjustmentCount || 0) + " date changes found.", "success");
+        } catch (error) { show(error.message, "error"); }
+      }
+      async function applyRates() {
+        try {
+          if (!confirm("Send enabled rate copy changes to Guesty now? This changes nightly prices only.")) return;
+          show("Sending enabled rate copy changes to Guesty...");
+          const data = await api("/api/rates/apply", { method: "POST", body: "{}" });
+          renderResults(data);
+          show((data.message || "Rate copy sent to Guesty.") + " " + (data.appliedCount || 0) + " date changes applied.", "success");
         } catch (error) { show(error.message, "error"); }
       }
       if (keyInput.value) loadPlan();

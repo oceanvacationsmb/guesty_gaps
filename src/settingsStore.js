@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 const LISTING_ID_PATTERN = /^[0-9a-fA-F]{24}$/;
 const EVENT_ID_PATTERN = /^[a-z0-9-]+$/;
 const DATE_PART_PATTERN = /^\d{2}-\d{2}$/;
-const BEDROOM_CATEGORIES = new Set(["", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"]);
+const BEDROOM_CATEGORIES = new Set(["", "Studio", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"]);
 const RATE_COPY_ROLES = new Set(["disabled", "master", "copy"]);
 const DEFAULT_EVENT_RULES = [
   { id: "off-season", name: "Off Season", type: "fixed", start: "09-02", end: "02-28" },
@@ -107,9 +107,13 @@ function normalize(input) {
       : "disabled";
     const masterListingId = String(rawRateSetting.masterListingId || "");
     const adjustmentPercent = Number(rawRateSetting.adjustmentPercent || 0);
+    const hasExplicitRateEnabled = Object.hasOwn(rawRateSetting, "enabled");
     rateCopySettings[id] = {
       bedroomCategory,
       role,
+      enabled: hasExplicitRateEnabled
+        ? Boolean(rawRateSetting.enabled)
+        : role === "copy" && ["Studio", "1BR"].includes(bedroomCategory),
       masterListingId:
         role === "copy" &&
         normalizedIds.includes(masterListingId) &&

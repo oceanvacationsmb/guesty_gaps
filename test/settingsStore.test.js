@@ -44,10 +44,13 @@ function expectedRateCopySettings(ids, committed = {}) {
       return [
         id,
         {
-          bedroomCategory: ["", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"].includes(setting.bedroomCategory)
+          bedroomCategory: ["", "Studio", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"].includes(setting.bedroomCategory)
             ? setting.bedroomCategory
             : "",
           role,
+          enabled: Object.hasOwn(setting, "enabled")
+            ? Boolean(setting.enabled)
+            : role === "copy" && ["Studio", "1BR"].includes(setting.bedroomCategory),
           masterListingId,
           adjustmentPercent: Number.isFinite(Number(setting.adjustmentPercent || 0))
             ? Math.round(Number(setting.adjustmentPercent || 0) * 100) / 100
@@ -148,12 +151,14 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a857335e2001983e6d5": {
         bedroomCategory: "1BR",
         role: "master",
+        enabled: false,
         masterListingId: "",
         adjustmentPercent: 0
       },
       "68db1a47ccc0790022ab80c6": {
         bedroomCategory: "1BR",
         role: "copy",
+        enabled: true,
         masterListingId: "68db1a857335e2001983e6d5",
         adjustmentPercent: 10
       },
@@ -196,12 +201,14 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a47ccc0790022ab80c6": {
         bedroomCategory: "1BR",
         role: "copy",
+        enabled: true,
         masterListingId: "68db1a857335e2001983e6d5",
         adjustmentPercent: 10
       },
       "68db1a857335e2001983e6d5": {
         bedroomCategory: "1BR",
         role: "master",
+        enabled: false,
         masterListingId: "",
         adjustmentPercent: 0
       }
@@ -252,6 +259,7 @@ test("ignores checkbox values that are not Guesty listing ids", async () => {
       "68db1a857335e2001983e6d5": {
         bedroomCategory: "",
         role: "disabled",
+        enabled: false,
         masterListingId: "",
         adjustmentPercent: 0
       }

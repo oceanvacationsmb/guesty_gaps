@@ -77,12 +77,15 @@ calendar date for the enabled properties.
 Rate copying is kept separate from minimum-night scanning:
 
 - `/rate-settings` chooses bedroom category, master/copy role, master property,
-  and percentage adjustment.
-- `/rates` previews the configured copy plan.
+  percentage adjustment, and whether that copy target is active for rate
+  updates.
+- `/rates` previews the configured copy plan and has a separate button to send
+  enabled price-only changes to Guesty.
 
 Only properties already active in the scanner are available on the rate settings
-page. The current rate-copy page is preview only and does not change Guesty
-rates.
+page. Existing rate-copy settings are preserved when scanner settings are saved.
+When no rate active/inactive setting exists yet, only `Studio` and `1BR` copy
+targets start active for rate updates; all other categories start inactive.
 
 Guesty limits Open API traffic. The scanner spaces calls by `800ms` and
 automatically waits and retries if Guesty returns `429 Too Many Requests`.

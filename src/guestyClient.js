@@ -192,4 +192,20 @@ export class GuestyClient {
       )
     });
   }
+
+  async setRatesBulk(listingId, adjustments) {
+    if (!adjustments.length) return null;
+
+    return this.request("/availability-pricing/api/calendar/listings", {
+      method: "PUT",
+      body: JSON.stringify(
+        adjustments.map(({ date, toPrice }) => ({
+          listingId,
+          startDate: date,
+          endDate: date,
+          price: toPrice
+        }))
+      )
+    });
+  }
 }

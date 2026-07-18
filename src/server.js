@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { loadConfig } from "./config.js";
 import { GuestyClient } from "./guestyClient.js";
+import { copyRatesForEnabledTargets } from "./rateCopier.js";
 import { scanActiveListings } from "./scanner.js";
 import { SettingsStore } from "./settingsStore.js";
 import { propertiesPage, rateSettingsPage, ratesPage, scanPage } from "./settingsPage.js";
@@ -77,6 +78,7 @@ function rateCopyPlan(listings) {
         listingId: listing.id,
         listingTitle: listing.title,
         bedroomCategory: listing.rateCopy.bedroomCategory,
+        enabled: Boolean(listing.rateCopy.enabled),
         masterListingId: listing.rateCopy.masterListingId,
         masterTitle: master?.title || listing.rateCopy.masterListingId || "",
         adjustmentPercent: listing.rateCopy.adjustmentPercent,
@@ -204,11 +206,31 @@ const server = createServer(async (request, response) => {
       return;
     }
     if (request.method === "POST" && request.url === "/api/rates/preview") {
-      const { listings } = await activeListingsWithRateSettings();
+      const settings = await store.load();
+      const result = await copyRatesForEnabledTargets({
+        client,
+        config,
+        ...settings,
+        dryRun: true
+      });
       sendJson(response, 200, {
         dryRun: true,
-        message: "Rate copy is preview only. No Guesty rates were changed.",
-        plan: rateCopyPlan(listings)
+        message: "Rate copy preview complete. No Guesty rates were changed.",
+        ...result
+      });
+      return;
+    }
+    if (request.method === "POST" && request.url === "/api/rates/apply") {
+      const settings = await store.load();
+      const result = await copyRatesForEnabledTargets({
+        client,
+        config,
+        ...settings,
+        dryRun: false
+      });
+      sendJson(response, 200, {
+        message: "Rate copy sent to Guesty.",
+        ...result
       });
       return;
     }

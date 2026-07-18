@@ -87,3 +87,39 @@ test("updates multiple minimum-night dates for one listing in one request", asyn
     }
   ]);
 });
+
+test("updates multiple rate dates for one listing with price only", async () => {
+  let requestOptions;
+  const client = new GuestyClient({
+    clientId: "id",
+    clientSecret: "secret",
+    guestyRequestDelayMs: 1,
+    fetchImpl: async (_url, options) => {
+      requestOptions = options;
+      return response(200, { ok: true });
+    },
+    sleepImpl: async () => {}
+  });
+  client.accessToken = "cached-token";
+
+  await client.setRatesBulk("listing-a", [
+    { date: "2026-07-20", toPrice: 220 },
+    { date: "2026-07-21", toPrice: 230 }
+  ]);
+
+  assert.equal(requestOptions.method, "PUT");
+  assert.deepEqual(JSON.parse(requestOptions.body), [
+    {
+      listingId: "listing-a",
+      startDate: "2026-07-20",
+      endDate: "2026-07-20",
+      price: 220
+    },
+    {
+      listingId: "listing-a",
+      startDate: "2026-07-21",
+      endDate: "2026-07-21",
+      price: 230
+    }
+  ]);
+});
