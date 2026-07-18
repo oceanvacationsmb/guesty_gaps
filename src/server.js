@@ -3,7 +3,7 @@ import { loadConfig } from "./config.js";
 import { GuestyClient } from "./guestyClient.js";
 import { scanActiveListings } from "./scanner.js";
 import { SettingsStore } from "./settingsStore.js";
-import { propertiesPage, scanPage } from "./settingsPage.js";
+import { propertiesPage, rateSettingsPage, ratesPage, scanPage } from "./settingsPage.js";
 import { ScanJob } from "./scanJob.js";
 
 const config = loadConfig();
@@ -31,6 +31,60 @@ function authorized(request) {
   return Boolean(config.adminKey) && request.headers["x-admin-key"] === config.adminKey;
 }
 
+function listingTitle(listing) {
+  return (
+    listing.title ||
+    listing.nickname ||
+    listing.nicknameForOwner ||
+    listing.name ||
+    listing._id ||
+    listing.id
+  );
+}
+
+function publicListing(listing) {
+  return {
+    id: listing._id || listing.id,
+    title: listingTitle(listing)
+  };
+}
+
+async function activeListingsWithRateSettings() {
+  const settings = await store.load();
+  const activeIds = new Set(settings.activeListingIds);
+  const listings = (await client.getListings())
+    .map(publicListing)
+    .filter((listing) => activeIds.has(listing.id))
+    .map((listing) => ({
+      ...listing,
+      rateCopy: settings.rateCopySettings?.[listing.id] || {
+        bedroomCategory: "",
+        role: "disabled",
+        masterListingId: "",
+        adjustmentPercent: 0
+      }
+    }));
+  return { settings, listings };
+}
+
+function rateCopyPlan(listings) {
+  const byId = new Map(listings.map((listing) => [listing.id, listing]));
+  return listings
+    .filter((listing) => listing.rateCopy.role === "copy")
+    .map((listing) => {
+      const master = byId.get(listing.rateCopy.masterListingId);
+      return {
+        listingId: listing.id,
+        listingTitle: listing.title,
+        bedroomCategory: listing.rateCopy.bedroomCategory,
+        masterListingId: listing.rateCopy.masterListingId,
+        masterTitle: master?.title || listing.rateCopy.masterListingId || "",
+        adjustmentPercent: listing.rateCopy.adjustmentPercent,
+        ready: Boolean(master)
+      };
+    });
+}
+
 async function runScan() {
   const settings = await store.load();
   return scanActiveListings({ client, config, ...settings });
@@ -53,6 +107,16 @@ const server = createServer(async (request, response) => {
       response.end(scanPage);
       return;
     }
+    if (request.method === "GET" && request.url === "/rate-settings") {
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end(rateSettingsPage);
+      return;
+    }
+    if (request.method === "GET" && request.url === "/rates") {
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end(ratesPage);
+      return;
+    }
     if (request.method === "GET" && request.url === "/health") {
       sendJson(response, 200, { ok: true, dryRun: config.dryRun });
       return;
@@ -69,12 +133,7 @@ const server = createServer(async (request, response) => {
       const settings = await store.load();
       const activeIds = new Set(settings.activeListingIds);
       const listings = (await client.getListings()).map((listing) => ({
-        id: listing._id || listing.id,
-        title:
-          listing.title ||
-          listing.nickname ||
-          listing.nicknameForOwner ||
-          listing.name,
+        ...publicListing(listing),
         active: activeIds.has(listing._id || listing.id),
         minNightsFloor: settings.minNightsFloors?.[listing._id || listing.id] || 1,
         generalMinNights: settings.generalMinNights?.[listing._id || listing.id] || 3,
@@ -93,14 +152,7 @@ const server = createServer(async (request, response) => {
       const settings = await store.load();
       const activeIds = new Set(settings.activeListingIds);
       const listings = (await client.getListings())
-        .map((listing) => ({
-          id: listing._id || listing.id,
-          title:
-            listing.title ||
-            listing.nickname ||
-            listing.nicknameForOwner ||
-            listing.name
-        }))
+        .map(publicListing)
         .filter((listing) => activeIds.has(listing.id))
         .map((listing) => ({
           ...listing,
@@ -115,6 +167,7 @@ const server = createServer(async (request, response) => {
     }
     if (request.method === "PUT" && request.url === "/api/settings") {
       const body = await readJson(request);
+      const current = await store.load();
       const settings = await store.save({
         activeListingIds: Array.isArray(body.activeListingIds)
           ? body.activeListingIds
@@ -124,9 +177,39 @@ const server = createServer(async (request, response) => {
         lastMinuteMinNights: body.lastMinuteMinNights || {},
         eventRules: body.eventRules || [],
         propertyEventMinNights: body.propertyEventMinNights || {},
+        rateCopySettings: current.rateCopySettings || {},
         stepDownByGap: body.stepDownByGap || {}
       });
       sendJson(response, 200, settings);
+      return;
+    }
+    if (request.method === "GET" && request.url === "/api/rate-settings") {
+      const { listings } = await activeListingsWithRateSettings();
+      sendJson(response, 200, { listings, plan: rateCopyPlan(listings) });
+      return;
+    }
+    if (request.method === "PUT" && request.url === "/api/rate-settings") {
+      const body = await readJson(request);
+      const current = await store.load();
+      const settings = await store.save({
+        ...current,
+        rateCopySettings: body.rateCopySettings || {}
+      });
+      const { listings } = await activeListingsWithRateSettings();
+      sendJson(response, 200, {
+        rateCopySettings: settings.rateCopySettings,
+        listings,
+        plan: rateCopyPlan(listings)
+      });
+      return;
+    }
+    if (request.method === "POST" && request.url === "/api/rates/preview") {
+      const { listings } = await activeListingsWithRateSettings();
+      sendJson(response, 200, {
+        dryRun: true,
+        message: "Rate copy is preview only. No Guesty rates were changed.",
+        plan: rateCopyPlan(listings)
+      });
       return;
     }
     if (request.method === "POST" && request.url === "/api/scan") {

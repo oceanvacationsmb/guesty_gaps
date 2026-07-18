@@ -28,6 +28,36 @@ function expectedEventRules(committed = {}) {
   return [...byId.values()];
 }
 
+function expectedRateCopySettings(ids, committed = {}) {
+  return Object.fromEntries(
+    ids.map((id) => {
+      const setting = committed.rateCopySettings?.[id] || {};
+      const role = ["disabled", "master", "copy"].includes(setting.role)
+        ? setting.role
+        : "disabled";
+      const masterListingId =
+        role === "copy" &&
+        ids.includes(setting.masterListingId) &&
+        setting.masterListingId !== id
+          ? setting.masterListingId
+          : "";
+      return [
+        id,
+        {
+          bedroomCategory: ["", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"].includes(setting.bedroomCategory)
+            ? setting.bedroomCategory
+            : "",
+          role,
+          masterListingId,
+          adjustmentPercent: Number.isFinite(Number(setting.adjustmentPercent || 0))
+            ? Math.round(Number(setting.adjustmentPercent || 0) * 100) / 100
+            : 0
+        }
+      ];
+    })
+  );
+}
+
 test("loads the committed property selection JSON locally", async () => {
   const path = join("config", "properties.json");
   const store = new SettingsStore({ path });
@@ -62,6 +92,7 @@ test("loads the committed property selection JSON locally", async () => {
     lastMinuteMinNights: expectedLastMinute,
     eventRules: expectedEventRules(committed),
     propertyEventMinNights: expectedPropertyEvents,
+    rateCopySettings: expectedRateCopySettings(expectedIds, committed),
     stepDownByGap: expectedStepDown
   });
 });
@@ -113,6 +144,26 @@ test("saves property selection to GitHub contents API", async () => {
       "68db1a857335e2001983e6d5": { summer: 7 },
       "68db1a47ccc0790022ab80c6": { thanksgiving: 4 }
     },
+    rateCopySettings: {
+      "68db1a857335e2001983e6d5": {
+        bedroomCategory: "1BR",
+        role: "master",
+        masterListingId: "",
+        adjustmentPercent: 0
+      },
+      "68db1a47ccc0790022ab80c6": {
+        bedroomCategory: "1BR",
+        role: "copy",
+        masterListingId: "68db1a857335e2001983e6d5",
+        adjustmentPercent: 10
+      },
+      "68db1a3f34efe70012fd1284": {
+        bedroomCategory: "7BR",
+        role: "copy",
+        masterListingId: "68db1a857335e2001983e6d5",
+        adjustmentPercent: 20
+      }
+    },
     stepDownByGap: {
       "68db1a857335e2001983e6d5": true,
       "68db1a47ccc0790022ab80c6": false
@@ -140,6 +191,20 @@ test("saves property selection to GitHub contents API", async () => {
     propertyEventMinNights: {
       "68db1a47ccc0790022ab80c6": { thanksgiving: 4 },
       "68db1a857335e2001983e6d5": { summer: 7 }
+    },
+    rateCopySettings: {
+      "68db1a47ccc0790022ab80c6": {
+        bedroomCategory: "1BR",
+        role: "copy",
+        masterListingId: "68db1a857335e2001983e6d5",
+        adjustmentPercent: 10
+      },
+      "68db1a857335e2001983e6d5": {
+        bedroomCategory: "1BR",
+        role: "master",
+        masterListingId: "",
+        adjustmentPercent: 0
+      }
     },
     stepDownByGap: {
       "68db1a47ccc0790022ab80c6": false,
@@ -183,6 +248,14 @@ test("ignores checkbox values that are not Guesty listing ids", async () => {
     lastMinuteMinNights: { "68db1a857335e2001983e6d5": 0 },
     eventRules: DEFAULT_EVENT_RULES,
     propertyEventMinNights: { "68db1a857335e2001983e6d5": {} },
+    rateCopySettings: {
+      "68db1a857335e2001983e6d5": {
+        bedroomCategory: "",
+        role: "disabled",
+        masterListingId: "",
+        adjustmentPercent: 0
+      }
+    },
     stepDownByGap: { "68db1a857335e2001983e6d5": true }
   });
 });

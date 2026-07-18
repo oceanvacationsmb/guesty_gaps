@@ -7,6 +7,7 @@ const styles = `
   .row { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; align-items: center; }
   input[type=password] { min-width: 280px; padding: 10px; }
   input[type=number] { width: 72px; padding: 8px; }
+  select { padding: 8px; max-width: 280px; }
   button { padding: 11px 15px; cursor: pointer; font-weight: bold; }
   .primary { color: white; background: #153d6f; border: 1px solid #153d6f; border-radius: 5px; }
   .toggle-active { min-width: 96px; }
@@ -67,6 +68,13 @@ const scriptHelpers = `
           .map((rule) => rule.name + " " + eventMinNights[rule.id]);
         return enabled.length ? " - events: " + enabled.join(", ") : "";
       }
+      function rateSummary(item) {
+        const sign = Number(item.adjustmentPercent || 0) > 0 ? "+" : "";
+        return escapeHtml(item.listingTitle) + " copies from " +
+          escapeHtml(item.masterTitle || item.masterListingId || "missing master") +
+          " (" + escapeHtml(item.bedroomCategory || "no category") + ", " +
+          sign + escapeHtml(item.adjustmentPercent || 0) + "%)";
+      }
 `;
 
 export const propertiesPage = `<!doctype html>
@@ -83,6 +91,8 @@ export const propertiesPage = `<!doctype html>
     <nav>
       <a class="active" href="/properties">Property Settings</a>
       <a href="/scan">Scan &amp; Adjust</a>
+      <a href="/rate-settings">Rate Settings</a>
+      <a href="/rates">Copy Rates</a>
     </nav>
     <div class="row">
       <input id="key" type="password" placeholder="Settings admin key">
@@ -227,6 +237,110 @@ export const propertiesPage = `<!doctype html>
   </body>
 </html>`;
 
+export const rateSettingsPage = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rate Copy Settings</title>
+    <style>${styles}</style>
+  </head>
+  <body>
+    <h1>Rate Copy Settings</h1>
+    <p>Choose rate masters and copy targets. This page only shows properties already active in the scanner.</p>
+    <nav>
+      <a href="/properties">Property Settings</a>
+      <a href="/scan">Scan &amp; Adjust</a>
+      <a class="active" href="/rate-settings">Rate Settings</a>
+      <a href="/rates">Copy Rates</a>
+    </nav>
+    <div class="row">
+      <input id="key" type="password" placeholder="Settings admin key">
+      <button onclick="loadRateSettings()">Load rate settings</button>
+      <button class="primary" onclick="saveRateSettings()">Save rate settings</button>
+    </div>
+    <div id="status" class="panel">Enter your admin key and load rate settings.</div>
+    <div id="listings"></div>
+    <script>
+      ${scriptHelpers}
+      const categories = ["", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"];
+      let activeRateListings = [];
+      async function loadRateSettings() {
+        try {
+          const data = await api("/api/rate-settings");
+          activeRateListings = data.listings || [];
+          renderRateSettings(activeRateListings);
+          show(activeRateListings.length + " scanner-active properties loaded for rate settings.");
+        } catch (error) { show(error.message, "error"); }
+      }
+      function option(value, label, selectedValue) {
+        return '<option value="' + escapeHtml(value) + '"' + (value === selectedValue ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+      }
+      function renderRateSettings(listings) {
+        if (!listings.length) {
+          document.getElementById("listings").innerHTML = '<p>No scanner-active properties. Activate properties on Property Settings first.</p>';
+          return;
+        }
+        const masterOptions = (selected) =>
+          option("", "Choose master", selected) +
+          listings.map((listing) => option(listing.id, listing.title, selected)).join("");
+        const rows = listings.map((listing) => {
+          const setting = listing.rateCopy || {};
+          return '<div class="listing" data-listing-id="' + escapeHtml(listing.id) + '">' +
+            '<div style="flex:1"><div><strong>' + escapeHtml(listing.title || listing.id) + '</strong> <small>(' + escapeHtml(listing.id) + ')</small></div>' +
+            '<div class="row">' +
+            '<span>Category: <select class="rate-category" data-listing-id="' + escapeHtml(listing.id) + '">' +
+              categories.map((category) => option(category, category || "No category", setting.bedroomCategory || "")).join("") +
+            '</select></span>' +
+            '<span>Role: <select class="rate-role" onchange="syncRateRow(\\'' + escapeHtml(listing.id) + '\\')" data-listing-id="' + escapeHtml(listing.id) + '">' +
+              option("disabled", "Do not copy rates", setting.role || "disabled") +
+              option("master", "Master", setting.role || "disabled") +
+              option("copy", "Copy from master", setting.role || "disabled") +
+            '</select></span>' +
+            '<span>Copy from: <select class="rate-master" data-listing-id="' + escapeHtml(listing.id) + '">' + masterOptions(setting.masterListingId || "") + '</select></span>' +
+            '<span>Adjust %: <input class="rate-adjustment" type="number" step="0.01" min="-100" max="300" value="' + escapeHtml(setting.adjustmentPercent || 0) + '" data-listing-id="' + escapeHtml(listing.id) + '"></span>' +
+            '</div></div></div>';
+        }).join("");
+        document.getElementById("listings").innerHTML = rows;
+        for (const listing of listings) syncRateRow(listing.id);
+      }
+      function syncRateRow(id) {
+        const role = document.querySelector('.rate-role[data-listing-id="' + CSS.escape(id) + '"]')?.value || "disabled";
+        const master = document.querySelector('.rate-master[data-listing-id="' + CSS.escape(id) + '"]');
+        const adjustment = document.querySelector('.rate-adjustment[data-listing-id="' + CSS.escape(id) + '"]');
+        if (master) master.disabled = role !== "copy";
+        if (adjustment) adjustment.disabled = role !== "copy";
+      }
+      function rateCopySettings() {
+        const values = {};
+        for (const listing of activeRateListings) {
+          const id = listing.id;
+          const category = document.querySelector('.rate-category[data-listing-id="' + CSS.escape(id) + '"]')?.value || "";
+          const role = document.querySelector('.rate-role[data-listing-id="' + CSS.escape(id) + '"]')?.value || "disabled";
+          const master = document.querySelector('.rate-master[data-listing-id="' + CSS.escape(id) + '"]')?.value || "";
+          const adjustment = Number(document.querySelector('.rate-adjustment[data-listing-id="' + CSS.escape(id) + '"]')?.value || 0);
+          values[id] = {
+            bedroomCategory: category,
+            role,
+            masterListingId: role === "copy" ? master : "",
+            adjustmentPercent: role === "copy" ? adjustment : 0
+          };
+        }
+        return values;
+      }
+      async function saveRateSettings() {
+        try {
+          const data = await api("/api/rate-settings", { method: "PUT", body: JSON.stringify({ rateCopySettings: rateCopySettings() }) });
+          activeRateListings = data.listings || [];
+          renderRateSettings(activeRateListings);
+          show("RATE COPY SETTINGS SAVED SUCCESSFULLY. No rates were changed.", "success");
+        } catch (error) { show(error.message, "error"); }
+      }
+      if (keyInput.value) loadRateSettings();
+    </script>
+  </body>
+</html>`;
+
 export const scanPage = `<!doctype html>
 <html>
   <head>
@@ -241,6 +355,8 @@ export const scanPage = `<!doctype html>
     <nav>
       <a href="/properties">Property Settings</a>
       <a class="active" href="/scan">Scan &amp; Adjust</a>
+      <a href="/rate-settings">Rate Settings</a>
+      <a href="/rates">Copy Rates</a>
     </nav>
     <div class="row">
       <input id="key" type="password" placeholder="Settings admin key">
@@ -309,6 +425,58 @@ export const scanPage = `<!doctype html>
           '<h3>Scan results</h3><div class="results">' + rows + '</div>';
       }
       loadEnabled();
+    </script>
+  </body>
+</html>`;
+
+export const ratesPage = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Copy Rates</title>
+    <style>${styles}</style>
+  </head>
+  <body>
+    <h1>Copy Rates</h1>
+    <p>Preview the rate copy setup. This version does not change Guesty rates.</p>
+    <nav>
+      <a href="/properties">Property Settings</a>
+      <a href="/scan">Scan &amp; Adjust</a>
+      <a href="/rate-settings">Rate Settings</a>
+      <a class="active" href="/rates">Copy Rates</a>
+    </nav>
+    <div class="row">
+      <input id="key" type="password" placeholder="Settings admin key">
+      <button onclick="loadPlan()">Load rate copy setup</button>
+      <button class="primary" onclick="previewRates()">PREVIEW COPY RATES</button>
+    </div>
+    <div id="status" class="panel">Enter your admin key and load the rate copy setup.</div>
+    <div id="listings"></div>
+    <script>
+      ${scriptHelpers}
+      function renderPlan(plan) {
+        document.getElementById("listings").innerHTML = plan.length
+          ? '<h3>Rate copy plan</h3><div class="results">' + plan.map((item) =>
+              '<div class="result-row"><div class="result-title"><span>' + rateSummary(item) + '</span><span>' + (item.ready ? 'Ready' : 'Missing master') + '</span></div></div>'
+            ).join("") + '</div>'
+          : '<p>No rate copy targets selected yet. Use Rate Settings first.</p>';
+      }
+      async function loadPlan() {
+        try {
+          const data = await api("/api/rate-settings");
+          renderPlan(data.plan || []);
+          show("Rate copy setup loaded. No rates were changed.");
+        } catch (error) { show(error.message, "error"); }
+      }
+      async function previewRates() {
+        try {
+          const data = await api("/api/rates/preview", { method: "POST", body: "{}" });
+          renderPlan(data.plan || []);
+          show((data.message || "Preview complete. No Guesty rates were changed.") + " " + (data.plan || []).length + " copy targets found.", "success");
+        } catch (error) { show(error.message, "error"); }
+      }
+      if (keyInput.value) loadPlan();
     </script>
   </body>
 </html>`;

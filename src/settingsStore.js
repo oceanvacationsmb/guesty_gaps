@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 const LISTING_ID_PATTERN = /^[0-9a-fA-F]{24}$/;
 const EVENT_ID_PATTERN = /^[a-z0-9-]+$/;
 const DATE_PART_PATTERN = /^\d{2}-\d{2}$/;
+const BEDROOM_CATEGORIES = new Set(["", "1BR", "2BR", "3BR", "4BR", "5BR", "6BR", "7BR"]);
+const RATE_COPY_ROLES = new Set(["disabled", "master", "copy"]);
 const DEFAULT_EVENT_RULES = [
   { id: "off-season", name: "Off Season", type: "fixed", start: "09-02", end: "02-28" },
   { id: "bike-week", name: "Bike Week", type: "fixed", start: "05-08", end: "05-17" },
@@ -58,6 +60,9 @@ function normalize(input) {
   const rawPropertyEvents = Array.isArray(input)
     ? {}
     : input?.propertyEventMinNights || {};
+  const rawRateCopySettings = Array.isArray(input)
+    ? {}
+    : input?.rateCopySettings || {};
   const eventRules = normalizeEventRules(input);
   const eventIds = new Set(eventRules.map((rule) => rule.id));
   const normalizedIds = [
@@ -68,6 +73,7 @@ function normalize(input) {
   const lastMinuteMinNights = {};
   const stepDownByGap = {};
   const propertyEventMinNights = {};
+  const rateCopySettings = {};
 
   for (const id of normalizedIds) {
     const floorValue = Number(rawFloors[id] || 1);
@@ -91,6 +97,29 @@ function normalize(input) {
         propertyEventMinNights[id][eventId] = value;
       }
     }
+
+    const rawRateSetting = rawRateCopySettings[id] || {};
+    const bedroomCategory = BEDROOM_CATEGORIES.has(rawRateSetting.bedroomCategory)
+      ? rawRateSetting.bedroomCategory
+      : "";
+    const role = RATE_COPY_ROLES.has(rawRateSetting.role)
+      ? rawRateSetting.role
+      : "disabled";
+    const masterListingId = String(rawRateSetting.masterListingId || "");
+    const adjustmentPercent = Number(rawRateSetting.adjustmentPercent || 0);
+    rateCopySettings[id] = {
+      bedroomCategory,
+      role,
+      masterListingId:
+        role === "copy" &&
+        normalizedIds.includes(masterListingId) &&
+        masterListingId !== id
+          ? masterListingId
+          : "",
+      adjustmentPercent: Number.isFinite(adjustmentPercent)
+        ? Math.round(adjustmentPercent * 100) / 100
+        : 0
+    };
   }
 
   return {
@@ -100,6 +129,7 @@ function normalize(input) {
     lastMinuteMinNights,
     eventRules,
     propertyEventMinNights,
+    rateCopySettings,
     stepDownByGap
   };
 }
